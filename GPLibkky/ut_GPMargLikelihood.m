@@ -21,8 +21,10 @@ Z = linspace(0,1,N)';
 hyperparams.meanFunc = [];
 hyperparams.sigmaSmRange = [];
 hyperparams.sigmaPrRange = [0.1 10] * std(y);
-hyperparams.sigmaSm = 0;
-hyperparams.sigmaPr = 0;
+hyperparams.sigmaSm = 0.24793;
+hyperparams.sigmaPr = 2.99450;
+% hyperparams.sigmaSm = 0;
+% hyperparams.sigmaPr = 0;
 [post_mean, K, funcH, sigmaSm, sigmaPr] = ...
   GPMargLikelihood(X, y, Z, hyperparams);
 
@@ -35,13 +37,14 @@ hyperparams.sigmaPr = 0;
   for i = 1:num_samples
     plot(Z, gp_samples(i,:), 'm-');
   end
-  % plot the mean on top of it all
-%   pause,
 plot(Z, post_mean, 'b', 'LineWidth', 2); hold on,
+plot(Z, post_mean + diag(K), 'b--', 'LineWidth', 1); hold on,
+plot(Z, post_mean - diag(K), 'b--', 'LineWidth', 1); hold on,
 plot(Z, f(Z), 'g', 'LineWidth', 2);
 plot(X, y, 'kx', 'MarkerSize', 10, 'Linewidth', 2);
 fprintf('Chosen: sigmaSm: %f, sigmaPr: %f, \nlikl of post-mean: %f\n', ...
   sigmaSm, sigmaPr, GPAvgLogLikelihood(post_mean, K, post_mean));
+pause;
 fprintf('Paused .... \n');
 
 % Test 2

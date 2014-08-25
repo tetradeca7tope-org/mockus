@@ -18,7 +18,8 @@ function V = GPDrawSamples(mu, K, numSamples)
       chK = chol(K_);
       chol_decom_successful = true;
     catch err
-      fprintf('CHOL failed with diag_power: %d\n', diag_power);
+      fprintf('CHOL failed while drawing samples with diag_power: %d\n', ...
+        diag_power);
     end
   end
 

@@ -1,6 +1,8 @@
-function [mu, stddev, K, funcH] = GPRegression(X, y, Xtest, hyperParams, ...
+function [mu, stddev, Kpost, funcH] = GPRegression(X, y, Xtest, hyperParams, ...
                                               runtimeParams)
 % Function for performing Gaussian Process Regression. Uses a Gaussian kernel.
+% Updating this to use the Cholesky Decomposition on K11. The previous version
+% is in GPRegressionOld.m
 
   sigmaSm = hyperParams.sigmaSm;
   sigmaPr = hyperParams.sigmaPr;
@@ -29,7 +31,7 @@ function [mu, stddev, K, funcH] = GPRegression(X, y, Xtest, hyperParams, ...
     mean_Xte = mean_Xte * ones(num_te_data, 1);
   end
   if num_tr_data < inf
-%     fprintf('Inverting full matrix !\n');
+    % First prep the Kernel Matrix
     D11 = Dist2GP(X, X);
     K11 = sigmaPr * exp(-0.5*D11/sigmaSm^2);
     D12 = Dist2GP(X, Xtest);
@@ -37,58 +39,41 @@ function [mu, stddev, K, funcH] = GPRegression(X, y, Xtest, hyperParams, ...
     D22 = Dist2GP(Xtest, Xtest);
     K22 = sigmaPr * exp(-0.5*D22/sigmaSm^2);
 
-    % obtain outputs
-    % concatenate these 2 matrices so that we invert the matrix only once.
-    QQ = (K11 + diag(noise)) \ [K12 (y - meanX)];
-    mu = mean_Xte + K12' * QQ(:, end);
+    % This routine does Cholesky Decomposition. If Cholesky fails due to
+    % precision issues, then it adds an element to the diagonal.
+    cholDecompSucc = false;
+    K_ = K11 + diag(noise);
+    diagPower = min( ceil(log10(abs(min(diag(K11)))))-1, -11);
+    if ~(abs(diagPower) < inf)
+      diagPower = -11;
+    end
+    % Now keep trying unitl Cholesky Decomp is successful
+    while ~cholDecompSucc
+      try
+        L = chol(K_, 'lower');
+        cholDecompSucc = true;
+      catch err
+        fprintf('CHOL failed in GP Regression with diagPower: %d\n', diagPower);
+        diagPower = diagPower + 1;
+        K_ = K_ + (10^diagPower)*eye(size(K11));
+      end
+    end
+%     K_, (inv(L))'*inv(L), inv(L*L'),
+    % Compute this value alpha too
+    alpha = L' \ (L \ (y - meanX));
     
-    K = K22 - K12' * QQ(:,1:end-1);
-    stddev = real(sqrt(diag(K)));
+    % Obtain the outputs
+    [mu, stddev, Kpost] = GPComputeOutputs(Xtest, X, L, alpha, ...
+      sigmaPr, sigmaSm, meanFunc);
 
-  else  % num_data < 100
-%     fprintf('Inverting 100x100 matrix!\n');
-    % If num_tr_data is too large, then just do the GP on the closest 100 pts.
-    % compute the predictions for each point separately.
-    mu = zeros(num_te_data, 1);
-    stddev = zeros(num_te_data, 1);
-    K = []; % don't return this. difficult ot compute ?
-
-    for te_iter = 1:num_te_data
-      xte = Xtest(te_iter, :)';
-      dist2_to_tr = Dist2GP(X, xte'); 
-      [~, sorted_idxs] = sort(dist2_to_tr);
-      nbd = sorted_idxs(1:100);
-      xtr = X(nbd, :);
-
-      % now do what you did before on xtr
-      d11 = Dist2GP(xtr, xtr);
-      k11 = sigmaPr * exp(-0.5*d11/sigmaSm^2);
-      d12 = dist2_to_tr(nbd);
-      k12 = sigmaPr * exp(-0.5*d12/sigmaSm^2);
-
-      % obtain output
-      qq = (k11 + diag(noise(nbd))) \ [k12 (y(nbd) - meanX(nbd))];
-      mu(te_iter) = mean_Xte(te_iter) + k12' * qq(:, end);
-
-      % return the covariance if necessary
-      d22 = 0;
-      k22 = sigmaPr;
-      stddev(te_iter) = k22 - k12' * qq(:, 1:end-1);
-    end % for te_iter
-
-  end % else num_data < 100
+  else 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % TODO: Better implementation for large amounts of training data
+  end 
 
   if (runtimeParams.retFunc)
-  % Create a function handle so that the matrix need not be inverted all the
-  % time
-    Kmat = K11 + diag(noise);
-    if rcond(Kmat) < 1e-16
-      invMat = inv(Kmat);
-    else
-      invMat = pinv(Kmat);
-    end
-    funcH = @(Xte) GPFuncHandle(Xte, X, y, invMat, sigmaPr, ...
-                                sigmaSm, meanFunc); 
+    funcH = @(Xte) ...
+      GPComputeOutputs(Xte, X, L, alpha, sigmaPr, sigmaSm, meanFunc); 
   else
     funcH = [];
   end
@@ -103,16 +88,26 @@ function [mu, stddev, K, funcH] = GPRegression(X, y, Xtest, hyperParams, ...
 
 end
 
-% This function will be passed as a function handle to the output
-function [yte, ystd, yK] = GPFuncHandle(Xte, Xtr, Ytr, invK, sigmaPr, sigmaSm, meanFunc)
-  meanXte = meanFunc(Xte);
-  meanXtr = meanFunc(Xtr);
 
+function [yMu, yStd, yK] = GPComputeOutputs(Xte, Xtr, L, alpha, ...
+  sigmaPr, sigmaSm, meanFunc)
+% This function will be passed as a function handle to the output
+% L is the Cholesky Decomp of the Kernel matrix.
+
+  % Prelims
+  meanXte = meanFunc(Xte);
   D12 = Dist2GP(Xtr, Xte);
   K12 = sigmaPr * exp(-0.5*D12/sigmaSm^2);
   D22 = Dist2GP(Xte, Xte);
   K22 = sigmaPr * exp(-0.5*D22/sigmaSm^2);
-  yte = meanXte + K12' * invK * (Ytr - meanXtr);
-  yK = K22 - K12' * invK * K12;
-  ystd = real(sqrt(diag(yK)));
+
+  % Now compute the outputs
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % 1. The predictive Mean
+  yMu = meanXte + K12' * alpha;
+  % 2. Predictive Variance
+  V = L \ K12;
+  yK = K22 - V'*V;
+  yStd = sqrt(real(diag(yK)));
 end
+
