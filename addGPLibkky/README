@@ -1,0 +1,13 @@
+
+addGPMargLikelihood: Performs additive GP regression but here the groups in the
+  additive GP are known. Maximizes the GP marginal likelihood to learn the
+  bandwidth and scale.
+
+addGPRotMargLikelihood: Performs additive GP regression but now attempts to find
+  the grouping. Here, the groups are obtained by grouping  the coordinates
+  in any orthogonal basis.
+
+addGPUGMargLikelihood: Performs additive GP regression again with unknown
+  groups. But this time the coordinates basis is known so you are just trying to
+  group the variables together.
+
