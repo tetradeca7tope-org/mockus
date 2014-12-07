@@ -10,10 +10,11 @@ addpath ../utils/
 
 close all;
 clear all;
+clc; clc;
 
 % Set parameters
-numDims = 15;
-numDimsPerGroup = 4;
+numDims = 9;
+numDimsPerGroup = 3;
 m = 60*numDimsPerGroup;
 
 % Test 1
@@ -40,6 +41,8 @@ uhps.numAOptInits = 1;
 uhps.numAOptIters = 10;
 uhps.numOuterInits = 1;
 uhps.numBwSigmaDiRectIters = [];
+uhps.decompStrategy = 'learn';
+uhps.decompStrategy = 'partialLearn';
 dummyPt = zeros(0,numDims);
 [~, ~, ~, ~, combinedXFuncH, combinedZFuncH, funcHs, ...
   sigmaSmOpts, sigmaPrOpts, A, learnedDecomp] = ...
@@ -50,6 +53,7 @@ if size(A, 1) > 10, A(1:10, 1:10),
 else, A,
 end
 [~, permutes] = orthToPermutation(A),
+fProps.permuteOrder,
 
 % Perform Additive GP Regression
 hyperParams.useSameSm = true; %false;

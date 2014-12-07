@@ -1,17 +1,17 @@
 function [A, optVal] = decompOptimize(func, D, p, potInitAs, numInitPts)
 % Optimizes to find the best decomposition
 
-  NUM_DECOMP_ORTH_ITERS = 5;
 
   % Prelims
-  if isempty(numInitPts), numInitPts = 10*D*p;
+  if isempty(numInitPts), numInitPts = 15*D*p;
   end
   if isempty(potInitAs), numPotentialInitAs = 0;
   else numPotentialInitAs = size(potInitAs, 3);
   end
-  numElitePts = 5;
-  numGDIters = 10;
-  numInitGDIters = 5; 
+  numElitePts = 1;
+  numGDIters = 100;
+  numInitGDIters = 4; 
+  numDecompIters = 1;
 
   % Set optimization parameters
   stiefelOpts.record = 0;
@@ -52,7 +52,7 @@ function [A, optVal] = decompOptimize(func, D, p, potInitAs, numInitPts)
   % now, do this iteratively.
   eliteVals = zeros(numElitePts, 1);
   stiefelOpts.mxitr = numGDIters;
-  for j = 1:NUM_DECOMP_ORTH_ITERS
+  for j = 1:numDecompIters
     for i = 1:numElitePts
       Ai = eliteAs(:,:,i);
       Ai = OptStiefelGBB(Ai, func, stiefelOpts);
@@ -60,7 +60,7 @@ function [A, optVal] = decompOptimize(func, D, p, potInitAs, numInitPts)
 %       fprintf('i,j= %d,%d', i,j); Ai,
       eliteAs(:,:,i) = Ai;
       eliteVals(i) = func(Ai);
-      fprintf('i,j,eliteVals(i)= %d,%d,%f, %s\n', i,j,eliteVals(i), mat2str(permi));
+%       fprintf('i,j,eliteVals(i)= %d,%d,%f, %s\n', i,j,eliteVals(i), mat2str(permi));
     end
   end
 

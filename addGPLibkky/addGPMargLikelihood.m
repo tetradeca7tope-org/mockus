@@ -27,8 +27,10 @@ function [mu, KPost, Mus, KPosts, combinedFuncH, funcHs, ...
   % -----------------------------------------
   if isempty(hyperParams.commonMeanFunc)
     commonMeanFunc = @(arg) mean(y) * ones(size(arg,1), 1);
+%     commonMeanFunc = @(arg) zeros(size(arg,1), 1);
   else
     commonMeanFunc = hyperParams.commonMeanFunc;
+%     commonMeanFunc,
   end
   % Common Noise parameter
   % -------------------------------------

@@ -1,25 +1,45 @@
-function [maxVal, maxPt, boQueries, boVals, history] = bayesOptAddGP(...
-  oracle, decomposition, bounds, numIters, params)
-% Performs BO to maximize the function given in the oracle. Read bayesOptGP.m
-% for explanation on the inputs and outputs. The only difference here is the new
-% input argument decomposition. This is a matlab cell where each element is a
-% vector containing the coordinates of the group.
+function [maxVal, maxPt, boQueries, boVals, history] = bayesOptUDAddGP(...
+  oracle, decomp, bounds, numIters, params)
+% The same as bayesOptADDGP except that now the decomposition may not be known.
+% params should have a field called decompStrategy: It should be one of 
+% 'known', 'learn', 'random' and 'partialLearn'. 
+% 'known': The decomposition is known and given in decomp. We will optimize
+% according to this.
+% For the other 3 cases, decomp should have two parameters d & M.
+% 'learn': The decomposition is unknown and should be learned.
+% 'random': Randomly pick a partition at each iteration. 
+% 'partialLearn': Partially learn the decomposition at each iteration by trying
+%   out a few and picking the best.
+
+  % Define these to avoid typos
+  DECOMP_KNOWN = 'known';
+  DECOMP_LEARN = 'learn';
+  DECOMP_RAND = 'random';
+  DECOMP_PLEARN = 'partialLearn';
 
   % Prelims
   numDims = size(bounds, 1);
-  numGroups = numel(decomposition);
   dummyPts = zeros(0, numDims); % to build the GPs
   MAX_THRESHOLD_EXCEEDS = 5;
   NUM_ITERS_PER_PARAM_RELEARN = 20;
 
-  % Do some diagnostics on the decomposition and print them out
-  relevantCoords = cell2mat(decomposition');
-  numRelevantCoords = numel(relevantCoords);
-  if numRelevantCoords ~= numel(unique(relevantCoords))
-    error('The Same coordinate cannot appear in different groups');
-  end
-  fprintf('# Groups: %d, %d/%d coordinates are relevant\n', ...
-    numGroups, numRelevantCoords, numDims);
+  % The Decomposition
+  % -----------------------------------------------------
+  gpHyperParams.decompStrategy = params.decompStrategy;
+    if strcmp(params.decompStrategy, DECOMP_KNOWN) decomposition = decomp;
+      numGroups = numel(decomposition);
+      % Do some diagnostics on the decomposition and print them out
+      relevantCoords = cell2mat(decomposition');
+      numRelevantCoords = numel(relevantCoords);
+      if numRelevantCoords ~= numel(unique(relevantCoords))
+        error('The Same coordinate cannot appear in different groups');
+      end
+      fprintf('# Groups: %d, %d/%d coordinates are relevant\n', ...
+        numGroups, numRelevantCoords, numDims);
+    else
+      numGroups = decomp.M;
+      % Now decomposition should have two fields d and M
+    end
 
   % If Init Points are not given, initialize
   if ~isfield(params, 'initPts') | isempty(params.initPts)
@@ -35,9 +55,9 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptAddGP(...
   if ~isfield(params, 'diRectParams')
     params.diRectParams = struct; 
     fprintf('WARNING: diRectParams not given. DiRect will use default vals.\n');
+    params.diRectParams.maxits = 10;
+    params.diRectParams.maxevals = min(10000, max(10*2^numDims, 20));
 %     params.diRectParams.maxits = 8;
-%     params.diRectParams.maxits = 100;
-    params.diRectParams.maxevals = min(10000, 2^round(numDims/numGroups));
   end
   if ~isfield(params, 'useFixedBandWidth')
     params.useFixedBandWidth = false;
@@ -114,7 +134,13 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptAddGP(...
   history = [max(initVals(cumsum(triu(ones(length(initVals))))))'; ...
              zeros(numIters, 1)];
   threshExceededCounter = 0;
-  currMaxVal = max(initVals);
+  if isempty(initVals)
+    currMaxVal = -inf;
+    currMaxPt = [];
+  else
+    [currMaxVal, maxIdx] = max(initVals);
+    currMaxPt = initPts(maxIdx, :);
+  end
   
   fprintf('Peforming BO (dim = %d)\n', numDims);
   for boIter = 1:numIters
@@ -140,7 +166,7 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptAddGP(...
         fprintf('Threshold Exceeded %d times - Reducing BW\n', ...
                 MAX_THRESHOLD_EXCEEDS);
       else
-        alBWUB = max(alBWLB, 0.9 * alBWUB);
+%         alBWUB = max(alBWLB, 0.9 * alBWUB);
       end
 
       % Define the BW range for addGPMargLikelihood      
@@ -155,12 +181,21 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptAddGP(...
         gpHyperParams.sigmaSmRange = [alBWLB, alBWUB];
       end % alBWUB == alBWLB
       % Obtain the optimal GP parameters
-      [~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales] = ...
-        addGPMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
-          decomposition, gpHyperParams );
+      if strcmp(params.decompStrategy, DECOMP_KNOWN)
+        [~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales] = ...
+          addGPMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
+            decomposition, gpHyperParams );
+        learnedDecomp = decomposition;
+      else
+        gpHyperParams.AisPerm = true; % do Permutation matrices for now.
+        [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp] = ...
+          addGPRotMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
+            decomp.d, decomp.M, gpHyperParams );
+      end
       alCurrBW = alCurrBWs(1); %TODO: modify to allow different bandwidths
-      fprintf('Picked bw: %0.4f (%0.4f, %0.4f), Scale: %0.4f\n', ...
-        alCurrBW, alBWLB, alBWUB, alCurrScales(1));
+      fprintf('Picked bw: %0.4f (%0.4f, %0.4f), Scale: %0.4f. Coords: %s\n', ...
+        alCurrBW, alBWLB, alBWUB, alCurrScales(1), ...
+        mat2str(cell2mat(learnedDecomp)) );
 
     end % if ~params.useFixedBandWidth ...
 
@@ -172,11 +207,11 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptAddGP(...
     currGPParams.sigmaSms = alCurrBWs;
     currGPParams.sigmaPrs = alCurrScales;
     [~,~,~,~, combFuncH, funcHs] = addGPRegression(currBoQueries, ...
-      currBoVals, dummyPts, decomposition, currGPParams);
+      currBoVals, dummyPts, learnedDecomp, currGPParams);
 
     % Now obtain the next point
     [nextPt, ~, nextPtStd] = getNextQueryPt(params, combFuncH, funcHs, ...
-      decomposition, currBoVals, bounds);
+      learnedDecomp, currBoVals, bounds);
     % If it is too close, perturn it a bit
     if min( sqrt( sum( bsxfun(@minus, currBoQueries, nextPt).^2, 2) ))/...
           alCurrBW< 1e-10 

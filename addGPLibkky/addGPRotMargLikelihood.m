@@ -10,6 +10,23 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
 %   M: the number of such groups. otherwise a vector with the number in each
 %      group.
 %   hyperParams: see other GP implementations
+% params should have a field called decompStrategy: It should be one of 
+% 'known', 'learn', 'random' and 'partialLearn'. 
+% 'known': The decomposition is known and given in decomp. We will optimize
+% according to this.
+% For the other 3 cases, decomp should have two parameters d & M.
+% 'learn': The decomposition is unknown and should be learned.
+% 'random': Randomly pick a partition at each iteration. 
+% 'partialLearn': Partially learn the decomposition at each iteration by trying
+%   out a few and picking the best.
+
+  % Define these to avoid typos
+  DECOMP_KNOWN = 'known';
+  DECOMP_LEARN = 'learn';
+  DECOMP_RAND = 'random';
+  DECOMP_PLEARN = 'partialLearn';
+  % Number of trials for partial learning
+  NUM_TRIALS_FOR_PLEARN = M*d;
 
   % prelims
   D = size(X, 2);
@@ -24,7 +41,7 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   end
   if ~isfield(hyperParams, 'numBwSigmaDiRectIters') | ...
     isempty(hyperParams.numBwSigmaDiRectIters)
-    numBwSigmaDiRectIters = 8;
+    numBwSigmaDiRectIters = 20;
   else numBwSigmaDiRectIters = hyperParams.numBwSigmaDiRectIters;
   end
 
@@ -32,7 +49,8 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   if isscalar(M)
     decomposition = cell(M, 1);
     for i = 1:M
-      decomposition{i} = ((i-1)*d + 1): (i*d); end
+      decomposition{i} = ((i-1)*d + 1): (i*d);
+    end
   else
     dimsPerGroup = M;
     M = numel(dimsPerGroup);
@@ -45,7 +63,7 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   end
   p = numel([decomposition{:}]);
   numGroups = numel(decomposition);
-     
+
   % Set the Hyperparameters for each GP
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Common Mean Function 
@@ -77,6 +95,14 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
       noises = hyperParams.noises;
     end
 
+  % Look at only permutation matrices for A ?
+  if ~isfield(hyperParams, 'AisPerm') | isempty(hyperParams.AisPerm)
+    AisPerm = true;
+  else
+    AisPerm = hyperParams.AisPerm;
+  end
+     
+
   % Initialization
   for initIter = 1:numOuterInits
     
@@ -101,7 +127,7 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
       sigmaPrBound = std(y) * [0.1 10];
     else
       sigmaPrRange = hyperParams.sigmaPrRange;
-      if size(sigmaPrRange, 2) == 1, sigmaPrBound = sigmaPrRange;
+      if size(sigmaPrRange, 2) == 2, sigmaPrBound = sigmaPrRange;
       else sigmaPrBound = sigmaPrRange * [0.1 10];
       end
     end
@@ -120,11 +146,23 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     negMLF = @(T) negNormRotMargLikelihood( sigmaSmOpts, sigmaPrOpts, ...
       decomposition, T, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
+    if AisPerm
+      if strcmp(hyperParams.decompStrategy, DECOMP_RAND)
+        A = getRandPermMat(D);        
+      elseif strcmp(hyperParams.decompStrategy, DECOMP_PLEARN)
+        A = decompOptPartial(negMLF, D, d, M);
+      elseif strcmp(hyperParams.decompStrategy, DECOMP_LEARN)
+%         A = decompOptimize(negMLF, D, p, [], []);
+        A = decompOptBrute(negMLF, D, d, M);
+      else
+        error('Unknown Strategy to handle decomposition\n');
+      end
+      [~, permutedOrder] = orthToPermutation(A);
+    else
 %     A = ce3AOptimize(negMLF, D, p, true);
 %     A = ce4AOptimize(negMLF, D, p, [], []);
+    end
     % If optimizing over just permutation matrices
-    A = decompOptimize(negMLF, D, p, [], []);
-    [~, permutedOrder] = orthToPermutation(A);
     
   end % for initIter
 
@@ -136,8 +174,8 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   sigmaPrOpts = optParams(2) * oneVec;
 
   % DEBUG
-  fprintf('\t DEBUG: negMLF(A): %0.4f, negMLF(eye): %0.4f\n', negMLF(A), ...
-    negMLF(eye(D,p)));
+%   fprintf('\t DEBUG: negMLF(A): %0.4f, negMLF(eye): %0.4f\n', negMLF(A), ...
+%     negMLF(eye(D,p)));
 
   % Finally Train the GP
   gpHyperParams.commonMeanFunc = commonMeanFunc;
@@ -148,15 +186,19 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   gpHyperParams.sigmaPrs = sigmaPrOpts;
   % The function handles returned are for the transformed space but that is what
   % we want.
-  Z = X * A; 
+  Z = X * A;
   [mu, KPost, Mus, KPosts, combinedZFuncH, funcHs] = ...
     addGPRegression(Z, y, Xtest, decomposition, gpHyperParams);
   combinedXFuncH = @(X) combinedZFuncH(X*A);
 
   % Finally return the learned decomposition
-  learnedDecomp = cell(numGroups, 1);
-  for i = 1:numGroups
-    learnedDecomp{i} = permutedOrder(decomposition{i});
+  if AisPerm
+    learnedDecomp = cell(numGroups, 1);
+    for i = 1:numGroups
+      learnedDecomp{i} = permutedOrder(decomposition{i});
+    end
+  else
+    learnedDecomp = decomposition;
   end
 
 end

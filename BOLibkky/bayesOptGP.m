@@ -44,7 +44,8 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptGP(oracle, ...
   if ~isfield(params, 'diRectParams')
     params.diRectParams = struct;
     fprintf('WARNING: diRectParams not given. DiRect will use default vals.\n');
-%     params.diRectParams.maxits = 8;
+    params.diRectParams.maxits = 100;
+    params.diRectParams.maevals = min(10000, 2^numDims);
   end
   if ~isfield(params, 'useFixedBandwidth')
     params.useFixedBandwidth = false;
@@ -106,13 +107,15 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptGP(oracle, ...
   history = [max(initVals(cumsum(triu(ones(length(initVals))))))'; ...
              zeros(numIters, 1)];
   threshExceededCounter = 0;
-  currMaxVal = -inf;
+  [currMaxVal, maxIdx] = max(initVals);
+  currMaxPt = initPts(maxIdx, :);
   
   fprintf('Performing BO (dim = %d)\n', numDims);
   for boIter = 1:numIters
 
     if mod(boIter, 20) == 0
-      fprintf('Bayesian Optimization iter %d/ %d\n', boIter, numIters);
+      fprintf('Bayesian Optimization iter %d/ %d. MaxVal: %0.4f\n', ...
+        boIter, numIters, currMaxVal);
     end
     % prelims
     numBoPts = numInitPts + boIter - 1;

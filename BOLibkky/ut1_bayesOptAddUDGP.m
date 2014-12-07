@@ -40,10 +40,13 @@ boAddParams.fixSm = false;
 boAddParams.useSameSm = true;
 boAddParams.alBWLB = 1e-5;
 boAddParams.alBWUB = 5;
+boAddParams.decompStrategy = 'learn';
 
 % Call BO
+decomp.d = 1;
+decomp.M = 2;
 [maxVal, maxPt, boAddQueries, boAddVals, boAddHist] = ...
-  bayesOptAddUDGP(func, 1, 2, bounds, numIters, boAddParams);
+  bayesOptUDAddGP(func, decomp, bounds, numIters, boAddParams);
 
 % Plot the iteration statistics
 figure;

@@ -17,24 +17,32 @@ function [func, funcProperties] = getAdditiveFunction(numDims, numDimsPerGroup)
     [subFunc, subProperties] = get3ModalFunction(d);
   end
 
-  func = @(X) objFunction(X, subFunc, D, d);
+%   permuteOrder = 1:numDims;
+  permuteOrder = randperm(numDims);
+  invertOrder = zeros(1,numDims);
+  invertOrder(permuteOrder) = 1:numDims;
+  func = @(X) objFunction(X, subFunc, D, d, permuteOrder);
   % The bounds of the function for the D/d groups will be taken from subFunc.
   % The rest are [-1, 1]
   funcProperties.bounds = [ repmat( subProperties.bounds, numGroups, 1); ...
                             repmat( [-1 1], numRemDims, 1) ];
   funcProperties.maxPt = [ repmat( subProperties.maxPt, 1, numGroups), ...
                            repmat( [0], 1, numRemDims) ];
+  funcProperties.maxPt = funcProperties.maxPt(invertOrder);
   funcProperties.maxVal = func(funcProperties.maxPt);
-  funcProperties.decomposition = {};
+  funcProperties.permuteOrder = permuteOrder;
+  funcProperties.invertOrder = invertOrder;
+  funcProperties.decomposition = cell(numGroups, 1);
   for k = 1:numGroups
-    funcProperties.decomposition{k} = ((k-1)*d+1) : (k*d);
+    funcProperties.decomposition{k} = permuteOrder(((k-1)*d+1) : (k*d));
   end
 
 end
 
 
 % This is the actual function that does the computation
-function val = objFunction(X, subFunc, D, d)
+function val = objFunction(X, subFunc, D, d, permuteOrder)
+  X = X(:, permuteOrder);
   X = X(:, 1:D); % discard the remaining dimensions
   numGroups = D/d;
   val = 0;

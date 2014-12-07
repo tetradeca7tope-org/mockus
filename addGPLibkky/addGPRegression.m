@@ -50,7 +50,10 @@ function [mu, KPost, Mus, KPosts, combinedFuncH, funcHs] = ...
     if isempty(hyperParams.meanFuncs)
       hyperParams.meanFuncs = @(arg) zeros( size(arg,1), 1);
     end
-    if numel(hyperParams.meanFuncs) == 1 && numGroups > 1
+    if numel(hyperParams.meanFuncs) == 1 && iscell(hyperParams.meanFuncs)
+      hyperParams.meanFuncs = hyperParams.meanFuncs{1};
+    end
+    if numel(hyperParams.meanFuncs) == 1
       meanFuncs = cell(numGroups, 1);
       [meanFuncs{:}] = deal(hyperParams.meanFuncs);
     else

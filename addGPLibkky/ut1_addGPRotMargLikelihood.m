@@ -37,6 +37,7 @@ hyperParams.numAOptInits = 100;
 hyperParams.numAOptIters = 10;
 hyperParams.numOuterInits = [];
 hyperParams.numBwSigmaDiRectIters = [];
+hyperParams.decompStrategy = 'learn';
 dummyPt = zeros(0, 2);
 [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   sigmaSmOpts, sigmaPrOpts, A, decomposition] = ...
