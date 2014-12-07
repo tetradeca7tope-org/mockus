@@ -9,6 +9,6 @@ function K = GaussKernel(h, X, Y)
 
   d = size(X, 2); % dimensions
   D = dist2(X, Y);
-  K = 1/(sqrt(2*pi) * h)^(d) * exp(-D/(2*h^2));
+  K = 1/sqrt(2*pi * h^2)^(d) * exp(-D/(2*h^2));
 
 end

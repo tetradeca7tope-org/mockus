@@ -2,6 +2,7 @@
 close all;
 clear all;
 addpath ../utils/
+addpath ../ancillary/
 
 % Test 1
 % ==============================================================================
@@ -21,10 +22,10 @@ Z = linspace(0,1,N)';
 hyperparams.meanFunc = [];
 hyperparams.sigmaSmRange = [];
 hyperparams.sigmaPrRange = [0.1 10] * std(y);
-hyperparams.sigmaSm = 0.24793;
-hyperparams.sigmaPr = 2.99450;
-% hyperparams.sigmaSm = 0;
-% hyperparams.sigmaPr = 0;
+% hyperparams.sigmaSm = 0.24793;
+% hyperparams.sigmaPr = 2.99450;
+hyperparams.sigmaSm = 0;
+hyperparams.sigmaPr = 0;
 [post_mean, K, funcH, sigmaSm, sigmaPr] = ...
   GPMargLikelihood(X, y, Z, hyperparams);
 
@@ -44,8 +45,8 @@ plot(Z, f(Z), 'g', 'LineWidth', 2);
 plot(X, y, 'kx', 'MarkerSize', 10, 'Linewidth', 2);
 fprintf('Chosen: sigmaSm: %f, sigmaPr: %f, \nlikl of post-mean: %f\n', ...
   sigmaSm, sigmaPr, GPAvgLogLikelihood(post_mean, K, post_mean));
-pause;
-fprintf('Paused .... \n');
+% pause;
+% fprintf('Paused .... \n');
 
 % Test 2
 % ==============================================================================
@@ -90,12 +91,30 @@ PLOTFUNC(X1, X2, Ytrue);
 title('truth');
 fprintf('Avg sum of squared errors: %f\n', mean(mean( (Yte - Ytrue).^2 )));
 
-% % Now draw some samples
-% num_samples = 100;
-% gp_samples = GPDrawSamples(post_mean, K, num_samples);
-% for i = 1:num_samples
-% %   plot(Z, gp_samples(i,:), 'm-');
-%   % Also print out the avg likelihood of this function
-%   fprintf('sample %d: avg-log-likelihood = %f\n', ...
-%           i, GPAvgLogLikelihood(post_mean, K, gp_samples(i,:)'));
-% end
+
+% Test 3 : Higher Dimensions
+% ==============================================================================
+fprintf('Test 3\n======================\n');
+
+numDims = 40;
+numTrainData = numDims^2;
+numTestData = numDims^2;
+f = get2ModalFunction(numDims);
+XTrain = rand(numTrainData, numDims);
+YTrain = f(XTrain);
+XTest = rand(numTestData, numDims);
+YTest = f(XTest);
+
+hyperparams.meanFunc = [];
+hyperparams.sigmaSmRange = [];
+hyperparams.sigmaPrRange = [];
+hyperparams.sigmaSm = 0;
+hyperparams.sigmaPr = 0;
+[postMean] = GPMargLikelihood(XTrain, YTrain, XTest, hyperparams);
+
+% Report error
+testError = norm(postMean - YTest)/sqrt(numTestData);
+fprintf('Error: %0.5f\n', testError);
+fprintf('Range: %0.5f\n', max([YTrain; YTest]) - min([YTrain; YTest]));
+fprintf('Std: %0.5f\n', std([YTrain; YTest]));
+

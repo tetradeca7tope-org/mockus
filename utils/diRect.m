@@ -95,7 +95,7 @@ n            = size(bounds,1);
 if nargin<3, opts=[]; end
 if (nargin>=3) & (length(opts)==0), opts=[]; end
 getopts(opts, ...
- 'maxits',     20,...         % maximum of iterations
+ 'maxits',     40,...         % maximum of iterations
  'maxevals',   max(n^3,50),... % maximum # of function evaluations
  'maxdeep',    100,...        % maximum number of side divisions
  'testflag',   0,...          % terminate if within a relative tolerence of f_opt

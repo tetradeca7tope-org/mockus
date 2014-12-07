@@ -14,7 +14,7 @@ function [mu, stddev, Kpost, funcH] = GPRegression(X, y, Xtest, hyperParams, ...
   % Run time parameters
   if ~exist('runtimeParams', 'var'), runtimeParams = struct(); end
   if ~isfield(runtimeParams, 'plotOn'), runtimeParams.plotOn = false; end
-  if ~isfield(runtimeParams, 'retFunc'), runtimeParams.retFunc = false; end
+  if ~isfield(runtimeParams, 'retFunc'), runtimeParams.retFunc = true; end
 
   if isempty(noise)
     noise = zeros(size(X,1), 1);
