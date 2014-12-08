@@ -11,6 +11,7 @@ addpath ../addGPLibkky/
 addpath ../utils/
 
 warning off;
+numExperiments = 4;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % These are the experiments we will run
@@ -32,6 +33,10 @@ trueDecomp = funcProperties.decomposition;
 trueMaxVal = funcProperties.maxVal;
 trueMaxPt = funcProperties.maxPt;
 trueNumGroups = numel(trueDecomp);
+% Experiment parameters
+numIters = min(8 * 2^numDims, 500);
+numDiRectEvals = min(10000, max(10*2^numDims, 20));
+
 
 % Ancillary stuff
 resultsDir = 'results/';
@@ -40,27 +45,25 @@ saveFileName = sprintf('%sgpb%d-%d-%s-%s.mat', resultsDir, numDims, ...
   datestr(now,'ddmm-hhMMss') );
 
 % Compute some statistics to help with the initialization
-th = rand(1000, numDims); stdFunc = std(func(th));
-
-% Experiment parameters
-numExperiments = 5;
-numIters = min(8 * 2^numDims, 500);
-numDiRectEvals = min(10000, max(10*2^numDims, 20));
+th = rand(1000, numDims); fth = func(th);
+meanFth = mean(fth);
+stdFth = std(fth);
 
 % Parameters for additive Bayesian optimization
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
 boParams.numInitPts = 0;
-boParams.commonNoise = 0.01 * stdFunc;
+boParams.commonNoise = 0.01 * stdFth;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
-boParams.commonMeanFunc = @(arg) zeros(size(arg, 1), 1);
+% boParams.commonMeanFunc = @(arg) zeros(size(arg, 1), 1);
+boParams.commonMeanFunc = @(arg) meanFth * ones(size(arg, 1), 1);
 boParams.useSamePr = true;
 boParams.useSameSm = true;
 boParams.fixPr = false;
 boParams.fixSm = false;
-boParams.sigmaPrRange = [0.03 30] * stdFunc;
+boParams.sigmaPrRange = [0.03 30] * stdFth;
 boParams.useFixedBandwidth = false;
 
 % From here on customize each parameters separately.
@@ -152,8 +155,8 @@ for expIter = 1:numExperiments
   randQueries = bsxfun(@plus, ...
     bsxfun(@times, rand(totalNumQueries, numDims), ...
       (bounds(:,2) - bounds(:,1))' ), bounds(:,1)' );
-  [sR, cR] = getRegrets(trueMaxVal, randHistories(expIter, :)');
   randHistories(expIter, :) = func(randQueries)';
+  [sR, cR] = getRegrets(trueMaxVal, randHistories(expIter, :)');
   randSimpleRegrets(expIter, :) = sR';
   randCumRegrets(expIter, :) = cR';
 

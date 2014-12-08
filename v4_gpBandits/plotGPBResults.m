@@ -1,6 +1,13 @@
 % plot GP Bandit results
 
+% saveFileName = 
+load(saveFileName);
+
 % Prelims
+PLOT_ERR_BARS = true;
+PLOT_ERR_BARS = false;
+SAVE_FILE_FORMAT = 'png';
+
 resultsDir = 'results/';
 plotColours = {'c', 'b', 'r', 'm', 'k', 'g', [255 128 0]/255, ...
   [76, 0, 153]/253, [102 102 0]/255, 'y'};
@@ -10,6 +17,7 @@ plotFunc = @loglog;
 plotFunc = @semilogy;
 qq = 1:totalNumQueries;
 numExperiments = size((randSimpleRegrets(:,1) ~= 0), 1);
+
 
 % First remove the zero entries
 boKDSimpleRegrets = boKDSimpleRegrets(1:numExperiments, :);
@@ -37,7 +45,7 @@ for regIter = 1:2
     randRegStdErr = std(randSimpleRegrets, 1)/sqrt(numExperiments);
     % For diRect
     diRectReg = diRectSimpleRegret;
-    figTitlePrefix = 'Simple Regret';
+    figTitlePrefix = 'Simple-Regret';
 
   else % Now do Cumulative Regret
     % Mean
@@ -52,7 +60,7 @@ for regIter = 1:2
     randRegStdErr = std(randCumRegrets, 1)/sqrt(numExperiments);
     % For diRect
 %     diRectReg = diRectCumRegret;
-    figTitlePrefix = 'Cumulative Regret';
+    figTitlePrefix = 'Cumulative-Regret';
 
   end
 
@@ -64,14 +72,19 @@ for regIter = 1:2
   end
   plotFunc(qq, KDRegMean, plotShapes{1}, 'Color', plotColours{1}); hold on,
   plotFunc(qq, UDRegMean, plotShapes{2}, 'Color', plotColours{2}); hold on,
-  legEntries = {'Random', 'DiRect', 'BO-KD', 'BO-UD'};
+  if regIter == 1
+    legEntries = {'Random', 'DiRect', 'BO-KD', 'BO-UD'};
+  else
+    legEntries = {'Random', 'BO-KD', 'BO-UD'};
+  end
+  numBaseLegEntries = numel(legEntries);
   for i = 1:numdCands
     plotFunc(qq, AddRegMean(1,:,i), plotShapes{4+i}, 'Color', plotColours{4+i});
-    legEntries{4+i} = sprintf('BO-%d', numDimsPerGroupCands(i));
+    legEntries{numBaseLegEntries+i} = sprintf('BO-%d', numDimsPerGroupCands(i));
   end
   legend(legEntries);
 
-  if numExperiments > 1
+  if PLOT_ERR_BARS & (numExperiments > 1)
     errorbar(qq, randRegMean, randRegStdErr, plotShapes{3}, 'Color', plotColours{3});
     errorbar(qq, KDRegMean, KDRegStdErr, plotShapes{1}, 'Color', plotColours{1});
     errorbar(qq, UDRegMean, UDRegStdErr, plotShapes{2}, 'Color', plotColours{2});
@@ -83,5 +96,10 @@ for regIter = 1:2
   xlim([0 1.1*totalNumQueries]);
   titleStr = sprintf('%s, D = %d', figTitlePrefix, numDims);
   title(titleStr);
+
+  % Also Save the image
+  imFileName = sprintf('%s-%s.%s', saveFileName(1:(end-4)), ...
+    figTitlePrefix, SAVE_FILE_FORMAT);
+  saveas(gcf, imFileName, SAVE_FILE_FORMAT);
 
 end
