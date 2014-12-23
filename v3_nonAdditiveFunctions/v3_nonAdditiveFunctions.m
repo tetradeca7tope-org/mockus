@@ -12,8 +12,8 @@ addpath ../utils/
 warning off;
 
 % Choose initial parameters
-numExperiments = 4;
-numDims = 24;
+numExperiments = 2;
+numDims = 10;
 % numDims = 4;
 % numDimsPerGroup = 2;
 
@@ -22,7 +22,7 @@ numDims = 24;
 funcProperties,
 funcProperties.decomposition{1},
 bounds = funcProperties.bounds;
-numIters = min(8 * 2^numDims, 500);
+numIters = min(8 * 2^numDims, 1000);
 maxPt = funcProperties.maxPt;
 maxVal = funcProperties.maxVal;
 fprintf('True maxVal, maxPt: %f, %s\n', maxVal, mat2str(maxPt) );
@@ -62,8 +62,8 @@ boAddHistories2 = zeros(numExperiments, totalNumQueries);
 boAddHistories3 = zeros(numExperiments, totalNumQueries);
 randHistories = zeros(numExperiments, totalNumQueries);
 
-% numDimsPerGroupVals = [1; 5; 10];
-numDimsPerGroupVals = [1; 6; 12];
+numDimsPerGroupVals = [1; 2; 5];
+% numDimsPerGroupVals = [1; 6; 12];
 
 for expIter = 1:numExperiments
 

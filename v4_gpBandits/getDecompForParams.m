@@ -3,7 +3,14 @@ function [decomp, boAddParams, numGroups] = ...
 
   numGroups = floor(numDims/numDimsPerGroup);
 
-  if strcmp(boAddParams.decompStrategy, 'known')
+  if numDimsPerGroup == numDimsPerGroup
+    % This is the full BO
+    boAddParams.decompStrategy = 'known';
+    decomp = cell(1,1);
+    decomp{1} = 1:numDims;
+    boAddParams.noises = 0 * ones(numGroups, 1);
+
+  elseif strcmp(boAddParams.decompStrategy, 'known')
     decomp = cell(numGroups, 1);
     boAddParams.noises = 0 * ones(numGroups, 1);
     for i = 1:numGroups
@@ -13,6 +20,7 @@ function [decomp, boAddParams, numGroups] = ...
   else
     decomp.d = numDimsPerGroup;
     decomp.M = numGroups;
+
   end
 
 end

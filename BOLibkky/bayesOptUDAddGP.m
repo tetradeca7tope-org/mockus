@@ -146,8 +146,8 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptUDAddGP(...
   for boIter = 1:numIters
 
     if mod(boIter, 20) == 0
-      fprintf('Additive GP BO iter %d/ %d. MaxVal: %0.4f\n', ...
-        boIter, numIters, currMaxVal);
+      fprintf('Additive GP BO iter %d/ %d. MaxVal: %0.4f CumReward: %0.4f\n',...
+        boIter, numIters, currMaxVal, sum(boVals)/boIter );
     end
 
     % Prelims

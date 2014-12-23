@@ -53,12 +53,12 @@ stdFth = std(fth);
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
-boParams.numInitPts = 0;
+boParams.numInitPts = min(50, numDims);
 boParams.commonNoise = 0.01 * stdFth;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
 % boParams.commonMeanFunc = @(arg) zeros(size(arg, 1), 1);
-boParams.commonMeanFunc = @(arg) meanFth * ones(size(arg, 1), 1);
+boParams.commonMeanFunc = []; %@(arg) meanFth * ones(size(arg, 1), 1);
 boParams.useSamePr = true;
 boParams.useSameSm = true;
 boParams.fixPr = false;
@@ -134,7 +134,7 @@ for expIter = 1:numExperiments
   boUDSimpleRegrets(expIter, :) = sR';
   boUDCumRegrets(expIter, :) = cR';
 
-  % For the candidiates in numDimsPerGroupCands
+  % For the candidates in numDimsPerGroupCands
   for candIter = 1:numdCands
     fprintf('\nUsing an arbitrary %d/ %d decomposition\n', ...
       numDimsPerGroupCands(candIter), numDims );
@@ -142,6 +142,7 @@ for expIter = 1:numExperiments
       getDecompForParams(numDims, numDimsPerGroupCands(candIter), ...
                   boAddParams);
     boAddParamsCurr.diRectParams.maxevals = ceil(numDiRectEvals/numCurrGroups);
+    % Now call BO
     [~, ~, ~, valHistAdd] = ...
       bayesOptUDAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
