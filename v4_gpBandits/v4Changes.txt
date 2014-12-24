@@ -1,0 +1,4 @@
+- numDims
+- numDimsPerGroupCands
+- numIters
+- numDiRectEvals
