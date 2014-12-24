@@ -34,9 +34,8 @@ trueMaxVal = funcProperties.maxVal;
 trueMaxPt = funcProperties.maxPt;
 trueNumGroups = numel(trueDecomp);
 % Experiment parameters
-numIters = min(8 * 2^numDims, 500);
-numDiRectEvals = min(10000, max(10*2^numDims, 20));
-
+numIters = min(8 * 2^numDims, 1000);
+numDiRectEvals = min(500, max(10*2^numDims, 20));
 
 % Ancillary stuff
 resultsDir = 'results/';

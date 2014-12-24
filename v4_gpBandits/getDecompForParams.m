@@ -3,7 +3,7 @@ function [decomp, boAddParams, numGroups] = ...
 
   numGroups = floor(numDims/numDimsPerGroup);
 
-  if numDimsPerGroup == numDimsPerGroup
+  if numDimsPerGroup == numDims
     % This is the full BO
     boAddParams.decompStrategy = 'known';
     decomp = cell(1,1);
