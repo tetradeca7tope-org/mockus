@@ -11,7 +11,6 @@ addpath ../addGPLibkky/
 addpath ../utils/
 
 warning off;
-numExperiments = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % These are the experiments we will run
@@ -22,20 +21,22 @@ numExperiments = 1;
 % another which knows the grouping sizes and attempts to find them.
 
 % Problem parameters
+numExperiments = 1;
 numDims = 24;
 numDimsPerGroupCands = [24 1 3 6 12]';
+trueNumDimsPerGroup = 11;
+% Experiment parameters
+numIters = 600;
+numDiRectEvals = min(2000, max(10*2^numDims, 500));
+
 numdCands = numel(numDimsPerGroupCands);
 % Get the function
-trueNumDimsPerGroup = 11;
 [func, funcProperties] = getAdditiveFunction(numDims, trueNumDimsPerGroup);
 bounds = funcProperties.bounds;
 trueDecomp = funcProperties.decomposition;
 trueMaxVal = funcProperties.maxVal;
 trueMaxPt = funcProperties.maxPt;
 trueNumGroups = numel(trueDecomp);
-% Experiment parameters
-numIters = 600;
-numDiRectEvals = min(2000, max(10*2^numDims, 500));
 
 % Ancillary stuff
 resultsDir = 'results/';
