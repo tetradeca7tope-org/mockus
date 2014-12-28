@@ -11,7 +11,7 @@ addpath ../addGPLibkky/
 addpath ../utils/
 
 warning off;
-numExperiments = 2;
+numExperiments = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % These are the experiments we will run
@@ -52,7 +52,7 @@ stdFth = std(fth);
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
-boParams.numInitPts = 0; %min(50, numDims);
+boParams.numInitPts = min(50, numDims);
 boParams.commonNoise = 0.01 * stdFth;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
