@@ -11,3 +11,5 @@ addGPUGMargLikelihood: Performs additive GP regression again with unknown
   groups. But this time the coordinates basis is known so you are just trying to
   group the variables together.
 
+addGPDecompMargLikelihood: Wroet on Sat Dec 27 to try and handle all addGP
+  functions via the same interface. Can only handle permutation matrices.

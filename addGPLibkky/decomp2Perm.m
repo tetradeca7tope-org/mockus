@@ -1,4 +1,4 @@
-function P = decomp2perm(decomp, D, d, M)
+function P = decomp2perm(decomp, D)
 % TO BE COMPLETED
 % Given a decomposition returns the corresponding permutation matrix
 % d and M aren't really necessary 

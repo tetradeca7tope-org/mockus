@@ -10,16 +10,16 @@ close all;
 clear all;
 
 % Set parameters
-numDims = 40;
-m = 10*numDims;
-numDimsPerGroup = 4;
+numDims = 10;
+m = 200; %*numDims;
+numDimsPerGroup = 3;
 
 % Test 1
 % 2 1D examples
 fprintf('Test 1\n======================\n');
 [f, fProps] = getAdditiveFunction(numDims, numDimsPerGroup);
 decomposition = fProps.decomposition;
-numGroups = numDims/numDimsPerGroup;
+numGroups = floor(numDims/numDimsPerGroup);
 bounds = fProps.bounds;
 
 % Generate Data
@@ -40,9 +40,29 @@ hyperParams.noises = 0.00 * std(Y) * ones(numGroups, 1);
 hyperParams.commonNoise = 0.01 * std(Y);
 hyperParams.meanFuncs = [];
 hyperParams.commonMeanFunc = [];
+hyperParams.sigmaPrRange = [0.01 10] * std(Y);
+hyperParams.sigmaSmRange = [0.01 100] * norm(std(X));
 dummyPt = zeros(0, numDims);
-[mu, KPost, Mus, KPosts, combinedFuncH, funcHs, sigmaSmOpts, sigmaPrOpts] = ...
-  addGPMargLikelihood(X, Y, dummyPt, decomposition, hyperParams);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % If a test for addGPMargLikelihood
+% decomp = decomposition;
+% hyperParams.decompStrategy = 'known';
+% [mu, KPost, Mus, KPosts, combinedFuncH, ~, funcHs, sigmaSmOpts, sigmaPrOpts, ...
+%   A, learnedDecomp] = addGPDecompMargLikelihood(X, Y, dummyPt, decomp, ...
+%   hyperParams);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If a test for addGPDecompMargLikelihood
+decomp.M = numGroups;
+decomp.d = numDimsPerGroup;
+hyperParams.decompStrategy = 'learn';
+[mu, KPost, Mus, KPosts, combinedFuncH, ~, funcHs, sigmaSmOpts, sigmaPrOpts, ...
+  A, learnedDecomp] = addGPDecompMargLikelihood(X, Y, dummyPt, decomp, ...
+  hyperParams);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 fprintf('Chosen Smoothness: %s\n', mat2str(sigmaSmOpts));
 fprintf('Chosen Prior: %s\n', mat2str(sigmaPrOpts));
 % % Now plot the functions

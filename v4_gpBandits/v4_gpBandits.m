@@ -11,7 +11,7 @@ addpath ../addGPLibkky/
 addpath ../utils/
 
 warning off;
-numExperiments = 4;
+numExperiments = 2;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % These are the experiments we will run
@@ -23,7 +23,7 @@ numExperiments = 4;
 
 % Problem parameters
 numDims = 10;
-numDimsPerGroupCands = [10 1 2 5]';
+numDimsPerGroupCands = [10 5]';
 numdCands = numel(numDimsPerGroupCands);
 % Get the function
 trueNumDimsPerGroup = 3;
@@ -34,8 +34,8 @@ trueMaxVal = funcProperties.maxVal;
 trueMaxPt = funcProperties.maxPt;
 trueNumGroups = numel(trueDecomp);
 % Experiment parameters
-numIters = min(8 * 2^numDims, 1000);
-numDiRectEvals = min(500, max(10*2^numDims, 20));
+numIters = 500;
+numDiRectEvals = 500; %min(1000, max(10*2^numDims, 20));
 
 % Ancillary stuff
 resultsDir = 'results/';
@@ -52,12 +52,12 @@ stdFth = std(fth);
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
-boParams.numInitPts = min(50, numDims);
+boParams.numInitPts = 0; %min(50, numDims);
 boParams.commonNoise = 0.01 * stdFth;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
-% boParams.commonMeanFunc = @(arg) zeros(size(arg, 1), 1);
-boParams.commonMeanFunc = []; %@(arg) meanFth * ones(size(arg, 1), 1);
+boParams.commonMeanFunc = @(arg) zeros(size(arg, 1), 1);
+% boParams.commonMeanFunc = []; %@(arg) meanFth * ones(size(arg, 1), 1);
 boParams.useSamePr = true;
 boParams.useSameSm = true;
 boParams.fixPr = false;
@@ -142,14 +142,15 @@ for expIter = 1:numExperiments
                   boAddParams);
     boAddParamsCurr.diRectParams.maxevals = ceil(numDiRectEvals/numCurrGroups);
     % Now call BO
+%     [~, ~, ~, valHistAdd] = ...
+%       bayesOptUDAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
     [~, ~, ~, valHistAdd] = ...
-      bayesOptUDAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
+      bayesOptDecompAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
     boAddHistories(expIter, :, candIter) = valHistAdd';
     boAddSimpleRegrets(expIter, :, candIter) = sR';
     boAddCumRegrets(expIter, :, candIter) = cR';
   end
-  size(boAddSimpleRegrets),
 
   % Random
   randQueries = bsxfun(@plus, ...
