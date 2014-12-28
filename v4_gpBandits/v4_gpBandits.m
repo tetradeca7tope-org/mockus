@@ -22,11 +22,11 @@ numExperiments = 1;
 % another which knows the grouping sizes and attempts to find them.
 
 % Problem parameters
-numDims = 10;
-numDimsPerGroupCands = [10 5]';
+numDims = 24;
+numDimsPerGroupCands = [24 1 3 6 12]';
 numdCands = numel(numDimsPerGroupCands);
 % Get the function
-trueNumDimsPerGroup = 3;
+trueNumDimsPerGroup = 11;
 [func, funcProperties] = getAdditiveFunction(numDims, trueNumDimsPerGroup);
 bounds = funcProperties.bounds;
 trueDecomp = funcProperties.decomposition;
@@ -34,8 +34,8 @@ trueMaxVal = funcProperties.maxVal;
 trueMaxPt = funcProperties.maxPt;
 trueNumGroups = numel(trueDecomp);
 % Experiment parameters
-numIters = 500;
-numDiRectEvals = 500; %min(1000, max(10*2^numDims, 20));
+numIters = 600;
+numDiRectEvals = min(2000, max(10*2^numDims, 500));
 
 % Ancillary stuff
 resultsDir = 'results/';
@@ -52,7 +52,7 @@ stdFth = std(fth);
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
-boParams.numInitPts = min(50, numDims);
+boParams.numInitPts = numDims;
 boParams.commonNoise = 0.01 * stdFth;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
@@ -73,7 +73,11 @@ boKDParams.diRectParams.maxevals = ceil(numDiRectEvals/trueNumGroups);
 boKDParams.diRectParams.maxits = inf;
 % Known grouping but not decomposition
 boUDParams = boParams;
-boUDParams.decompStrategy = 'learn';
+if numDims < 12
+  boUDParams.decompStrategy = 'learn';
+else
+  boUDParams.decompStrategy = 'partialLearn';
+end
 boUDParams.diRectParams.maxevals = ceil(numDiRectEvals/trueNumGroups);
 boUDParams.diRectParams.maxits = inf;
 % The rest - arbitrary decompositions
