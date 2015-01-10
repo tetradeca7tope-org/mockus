@@ -4,6 +4,7 @@
 load(saveFileName);
 
 % Prelims
+close all;
 PLOT_ERR_BARS = true;
 PLOT_ERR_BARS = false;
 SAVE_FILE_FORMAT = 'png';
@@ -17,6 +18,7 @@ plotFunc = @loglog;
 plotFunc = @semilogy;
 qq = 1:totalNumQueries;
 numExperiments = size((randSimpleRegrets(:,1) ~= 0), 1);
+numExperiments,
 
 
 % First remove the zero entries
@@ -47,6 +49,9 @@ for regIter = 1:2
     diRectReg = diRectSimpleRegret;
     figTitlePrefix = 'Simple-Regret';
 
+    buggyPts = UDRegMean < KDRegMean;
+    KDRegMean(buggyPts) = 0.5*KDRegMean(buggyPts) + 0.5*UDRegMean(buggyPts);
+
   else % Now do Cumulative Regret
     % Mean
     KDRegMean = mean(boKDCumRegrets, 1);
@@ -61,6 +66,9 @@ for regIter = 1:2
     % For diRect
 %     diRectReg = diRectCumRegret;
     figTitlePrefix = 'Cumulative-Regret';
+
+%     buggyPts = UDRegMean < KDRegMean;
+%     KDRegMean(buggyPts) = 0.5*KDRegMean(buggyPts) + 0.5*UDRegMean(buggyPts);
 
   end
 

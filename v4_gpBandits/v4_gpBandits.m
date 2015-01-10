@@ -21,13 +21,14 @@ warning off;
 % another which knows the grouping sizes and attempts to find them.
 
 % Problem parameters
-numExperiments = 1;
-numDims = 24;
-numDimsPerGroupCands = [24 1 3 6 12]';
-trueNumDimsPerGroup = 11;
+numExperiments = 10;
+numDims = 10;
+numDimsPerGroupCands = [10 1 2 5]';
+% numDimsPerGroupCands = [24 1 3 6 12]';
+trueNumDimsPerGroup = 3;
 % Experiment parameters
-numIters = 600;
-numDiRectEvals = min(2000, max(10*2^numDims, 500));
+numIters = 800;
+numDiRectEvals = min(20000, max(100*numDims, 500));
 
 numdCands = numel(numDimsPerGroupCands);
 % Get the function
@@ -53,7 +54,7 @@ stdFth = std(fth);
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
-boParams.numInitPts = numDims;
+boParams.numInitPts = 0; %20; % min(20, numDims);
 boParams.commonNoise = 0.01 * stdFth;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
@@ -115,13 +116,14 @@ for expIter = 1:numExperiments
   fprintf('\n==============================================================\n');
   fprintf('Experiment %d/ %d\nMaxVal: %0.4f\n', ...
     expIter, numExperiments, trueMaxVal);
+  fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
   fprintf('==============================================================\n');
 
   % Known true decomposition
   fprintf('\nKnown Decomposition\n');
   boKDParams.noises = 0 * ones(trueNumGroups, 1);
   [~, ~, ~, valHistKD] = ...
-    bayesOptUDAddGP(func, trueDecomp, bounds, numIters, boKDParams);
+    bayesOptDecompAddGP(func, trueDecomp, bounds, numIters, boKDParams);
   [sR, cR] = getRegrets(trueMaxVal, valHistKD);
   boKDHistories(expIter, :) = valHistKD';
   boKDSimpleRegrets(expIter, :) = sR';
@@ -132,7 +134,7 @@ for expIter = 1:numExperiments
   [decompUD, boUDParams] = ...
     getDecompForParams(numDims, trueNumDimsPerGroup, boUDParams);
   [~, ~, ~, valHistUD] = ...
-    bayesOptUDAddGP(func, decompUD, bounds, numIters, boUDParams);
+    bayesOptDecompAddGP(func, decompUD, bounds, numIters, boUDParams);
   [sR, cR] = getRegrets(trueMaxVal, valHistUD);
   boUDHistories(expIter, :) = valHistUD';
   boUDSimpleRegrets(expIter, :) = sR';

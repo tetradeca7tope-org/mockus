@@ -181,9 +181,14 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
           decomp, gpHyperParams );
 
       alCurrBW = alCurrBWs(1); %TODO: modify to allow different bandwidths
+      if numDims < 24
+        learnedDecompStr = mat2str(cell2mat(learnedDecomp));
+      else
+        learnedDecompStr = '';
+      end
       fprintf('Picked bw: %0.4f (%0.4f, %0.4f), Scale: %0.4f. Coords: %s (%d)\n', ...
         alCurrBW, alBWLB, alBWUB, alCurrScales(1), ...
-        mat2str(cell2mat(learnedDecomp)), numel(learnedDecomp) );
+        learnedDecompStr, numel(learnedDecomp) );
 
     end % if ~params.useFixedBandWidth ...
 
