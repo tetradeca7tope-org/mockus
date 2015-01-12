@@ -1,4 +1,4 @@
-% Experiment Set up for Bayesian Optimization and GP Bandits
+% Experiment Set up for Bayesian Optimization for V&J
 
 close all;
 clear all;
@@ -9,26 +9,28 @@ addpath([LIBPATH 'GPLibkky']);
 addpath ../BOLibkky/
 addpath ../addGPLibkky/
 addpath ../utils/
+addpath VJ/
 
 warning off;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% These are the experiments we will run
-% numDimsPerGroupCands will contain arbitrary initial random partitiions. Of 
-% them, one of them will contain all numDims dimensions so this is eqt to just 
-% running naive BO.
-% Then we will also run one experiment which knows the true decomposition and
-% another which knows the grouping sizes and attempts to find them.
+% Problem Parameters
+numExperiments = 1;
+doubleParams = false;
+numXTrain = 10;
+numDimsPerGroupCands = [22 1 2 5 11]';
+
+% Options for vjWrap
+options.doubleParams = doubleParams;
+options.numTrain = numXTrain;
 
 % Problem parameters
-numExperiments = 1;
-numDims = 10;
-% numDimsPerGroupCands = [10 1 2 5]';
-numDimsPerGroupCands = [4]';
+if doubleParams, numDims = 44;
+else, numDims = 22; end
+
 % numDimsPerGroupCands = [24 1 3 6 12]';
 trueNumDimsPerGroup = 3;
 % Experiment parameters
-numIters = 100;
+numIters = 800;
 numDiRectEvals = min(20000, max(100*numDims, 500));
 
 numdCands = numel(numDimsPerGroupCands);
@@ -147,7 +149,7 @@ for expIter = 1:numExperiments
       numDimsPerGroupCands(candIter), numDims );
     [decompAdd, boAddParamsCurr, numCurrGroups] = ...
       getDecompForParams(numDims, numDimsPerGroupCands(candIter), ...
-                  boAddParams, true);
+                  boAddParams);
     boAddParamsCurr.diRectParams.maxevals = ceil(numDiRectEvals/numCurrGroups);
     % Now call BO
 %     [~, ~, ~, valHistAdd] = ...
