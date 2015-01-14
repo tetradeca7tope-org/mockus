@@ -23,12 +23,13 @@ warning off;
 % Problem parameters
 numExperiments = 1;
 numDims = 10;
-% numDimsPerGroupCands = [10 1 2 5]';
+% numDimsPerGroupCands = [10 1 2 4]';
 numDimsPerGroupCands = [4]';
+% numDimsPerGroupCands = [40 1 5 10 20]';
 % numDimsPerGroupCands = [24 1 3 6 12]';
 trueNumDimsPerGroup = 3;
 % Experiment parameters
-numIters = 100;
+numIters = 450;
 numDiRectEvals = min(20000, max(100*numDims, 500));
 
 numdCands = numel(numDimsPerGroupCands);

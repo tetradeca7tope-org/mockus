@@ -36,9 +36,13 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
       end
       fprintf('# Groups: %d, %d/%d coordinates are relevant\n', ...
         numGroups, numRelevantCoords, numDims);
-    else
-      numGroups = decomp.M;
+
+    elseif isfield(decomp, 'M')
       % Now decomposition should have two fields d and M
+      numGroups = decomp.M;
+
+    else
+      numGroups = numel(decomp);
     end
 
   % If Init Points are not given, initialize
@@ -182,7 +186,10 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
 
       alCurrBW = alCurrBWs(1); %TODO: modify to allow different bandwidths
       if numDims < 24
-        learnedDecompStr = mat2str(cell2mat(learnedDecomp));
+        learnedDecompStr = '';
+        for i = 1:numel(learnedDecomp)
+          learnedDecompStr = [learnedDecompStr mat2str(learnedDecomp{i})];
+        end
       else
         learnedDecompStr = '';
       end

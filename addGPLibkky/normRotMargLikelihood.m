@@ -4,6 +4,8 @@ function [nlml, AG] = normRotMargLikelihood(sigmaSms, sigmaPrs, decomposition, A
 % w.r.t A.
 % Decomposition is the decomposition after applying Z = X*A;
 
+%   decomposition, decomposition{3},
+
   % prelims
   numPts = size(X, 1);
   numGroups = numel(decomposition);

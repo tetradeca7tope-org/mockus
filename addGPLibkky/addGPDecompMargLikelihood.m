@@ -33,15 +33,28 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   diRectOptions.maxits = 8;
 
   if ~strcmp(hyperParams.decompStrategy, DECOMP_KNOWN)
-    % First create a placeholder for the decomposition
-    M = decomp.M;
-    d = decomp.d;
-    p = d*M;
-    % Number of trials for partial learning
-    NUM_TRIALS_FOR_PLEARN = M*d;
-    decomposition = cell(M, 1);
-    for i = 1:M
-      decomposition{i} = ((i-1)*d +1) : (i*d) ;
+
+    if isfield(decomp, 'M')
+      % First create a placeholder for the decomposition
+      M = decomp.M;
+      d = decomp.d;
+      p = d*M;
+      % Number of trials for partial learning
+  %     NUM_TRIALS_FOR_PLEARN = M*d;
+      decomposition = cell(M, 1);
+      for i = 1:M
+        decomposition{i} = ((i-1)*d +1) : (i*d) ;
+      end
+    else % then decomp is a vector of values with the number of dims in each group.
+      M = numel(decomp);
+      d = max(decomp);
+      p = sum(decomp);
+      cumDims = cumsum(decomp); cumDims = cumDims(:);
+      cumDims = [0; cumDims];
+      decomposition = cell(M, 1);
+      for i = 1:M
+        decomposition{i} = [(cumDims(i)+1):cumDims(i+1)];
+      end
     end
   else
     decomposition = decomp;

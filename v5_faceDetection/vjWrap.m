@@ -1,4 +1,4 @@
-function [score, acc] = vjWrap(XTrain, YTrain, HaarCascade, params, options)
+function [score, acc] = vjWrap(XTrain, YTrain, HaarCascade, params, bounds, options)
 
   if ~isfield(options, 'numTrain')
     numTrain = size(YTrain, 1);
@@ -21,7 +21,6 @@ function [score, acc] = vjWrap(XTrain, YTrain, HaarCascade, params, options)
   else
     numParams = 22;
   end
-  bounds = 110 * [zeros(numParams,1) ones(numParams,1)];
 
   thresholds = getUnNormParams(params, bounds);
   score = zeros(n, 1);

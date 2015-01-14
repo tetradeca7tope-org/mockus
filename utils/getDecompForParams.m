@@ -7,6 +7,10 @@ function [decomp, boAddParams, numGroups] = ...
 
   if addRemainingDims
     numGroups = ceil(numDims/numDimsPerGroup);
+    numRemDims = numDims - numDimsPerGroup * (numGroups-1);
+    if numRemDims == 0
+      addRemainingDims = false;
+    end
   else
     numGroups = floor(numDims/numDimsPerGroup);
   end
@@ -25,6 +29,9 @@ function [decomp, boAddParams, numGroups] = ...
       decomp{i} = ( (i-1)*numDimsPerGroup+1 : min(i*numDimsPerGroup, numDims) );
     end
 
+  elseif addRemainingDims
+    decomp = [ numDimsPerGroup * ones(numGroups-1, 1); numRemDims];
+  
   else
     decomp.d = numDimsPerGroup;
     decomp.M = numGroups;
