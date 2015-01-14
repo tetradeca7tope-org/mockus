@@ -30,16 +30,16 @@ if doubleParams, numDims = 44;
 else numDims = 22; end
 vjOptions.numTrain = numXTrain;
 vjOptions.doubleParams = doubleParams;
-numDiRectEvals = min(20000, max(1000*numDims, 500));
+numDiRectEvals = 1000; %min(20000, max(100*numDims, 500));
 numdCands = numel(numDimsPerGroupCands);
 
 % Get the function
-vjBounds = [ 0 4; 0 20; 0 20; 5 25; 0 20; 10 30; 10 30; 10 30; ...
-  10 30; 20 40; 30 40; 50 60; 40 60; 40 60; 50 70; 50 70; 55 75; ...
-  70 80; 70 90; 80 100; 100 120; 100 120];
-% vjBounds = [ 0 2; 0 10; 5 15; 10 20; 10 20; 15 25; 15 25; 20 30; ...
-%   20 30; 30 40; 30 40; 45 55; 50 60; 45 55; 65 75; 60 70; 65 75; ...
-%   75 85; 80 90; 85 95; 100 110; 100 110];
+% vjBounds = [ 0 4; 0 20; 0 20; 5 25; 0 20; 10 30; 10 30; 10 30; ...
+%   10 30; 20 40; 30 40; 50 60; 40 60; 40 60; 50 70; 50 70; 55 75; ...
+%   70 80; 70 90; 80 100; 100 120; 100 120];
+vjBounds = [ 0 2; 0 10; 5 15; 10 20; 10 20; 15 25; 15 25; 20 30; ...
+  20 30; 30 40; 30 40; 45 55; 50 60; 45 55; 65 75; 60 70; 65 75; ...
+  75 85; 80 90; 85 95; 100 110; 100 110];
 nominalParams = [0.8227 6.9566 9.4985 18.4130 15.3241 21.0106 23.9188 24.5279 ... 
   27.1534 34.5541 39.1073 50.6105 54.6201 50.1697 66.6691 67.6989 69.2288 ...
   79.2491 87.6960 90.2533 104.7492 105.7611];
@@ -55,7 +55,7 @@ saveFileName = sprintf('%svj%d-%d-%s-%s.mat', resultsDir, numDims, numXTrain,...
 % Parameters for additive Bayesian optimization
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
-boParams.alBWUB = 5;
+boParams.alBWUB = 1;
 boParams.numInitPts = 0; %20; % min(20, numDims);
 boParams.commonNoise = 0.3;
 boParams.utilityFunc = 'UCB';
@@ -94,17 +94,17 @@ randTimes = zeros(numExperiments);
 % First call at the nominal value
 nominalVal = func(normalizedNominalParams);
 
-% First Call Direct
-fprintf('First Running DiRect\n============================================\n');
-diRectOpts.maxevals = totalNumQueries;
-diRectOpts.maxits = inf;
-diRectOpts.showits = true;
-tic;
-[~, diRectOptPt, diRectHist] = diRectWrap(func, bounds, diRectOpts);
-diRectTime = toc;
-[diRectHistory, diRectMaxVals, diRectCumRewards] = ...
-  getDiRectResults(diRectHist, -inf, totalNumQueries);
-fprintf('DiRectOpt = %.4f\n', diRectMaxVals(end));
+% % First Call Direct
+% fprintf('First Running DiRect\n============================================\n');
+% diRectOpts.maxevals = totalNumQueries;
+% diRectOpts.maxits = inf;
+% diRectOpts.showits = true;
+% tic;
+% [~, diRectOptPt, diRectHist] = diRectWrap(func, bounds, diRectOpts);
+% diRectTime = toc;
+% [diRectHistory, diRectMaxVals, diRectCumRewards] = ...
+%   getDiRectResults(diRectHist, -inf, totalNumQueries);
+% fprintf('DiRectOpt = %.4f\n', diRectMaxVals(end));
 
 for expIter = 1:numExperiments
 
