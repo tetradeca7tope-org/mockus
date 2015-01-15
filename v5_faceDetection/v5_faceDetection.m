@@ -15,10 +15,10 @@ warning off;
 
 % Problem parameters
 numExperiments = 1;
-numIters = 400;
-numXTrain = 200;
+numIters = 300;
+numXTrain = 100;
 numXTest = 10;
-numDimsPerGroupCands = [22 1 2 5 11]';
+numDimsPerGroupCands = [22 1 2 3 4 5 6 8 11]';
 doubleParams = false;
 
 % Load the data
@@ -37,6 +37,9 @@ numdCands = numel(numDimsPerGroupCands);
 % vjBounds = [ 0 4; 0 20; 0 20; 5 25; 0 20; 10 30; 10 30; 10 30; ...
 %   10 30; 20 40; 30 40; 50 60; 40 60; 40 60; 50 70; 50 70; 55 75; ...
 %   70 80; 70 90; 80 100; 100 120; 100 120];
+% vjBounds = [ 0 4; 0 10; 5 15; 10 20; 10 20; 15 25; 15 25; 20 30; ...
+%   20 30; 30 40; 30 40; 45 55; 50 60; 45 55; 65 75; 60 70; 65 75; ...
+%   75 85; 80 90; 85 95; 100 110; 100 110];
 vjBounds = [ 0 2; 0 10; 5 15; 10 20; 10 20; 15 25; 15 25; 20 30; ...
   20 30; 30 40; 30 40; 45 55; 50 60; 45 55; 65 75; 60 70; 65 75; ...
   75 85; 80 90; 85 95; 100 110; 100 110];
@@ -55,7 +58,7 @@ saveFileName = sprintf('%svj%d-%d-%s-%s.mat', resultsDir, numDims, numXTrain,...
 % Parameters for additive Bayesian optimization
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
-boParams.alBWUB = 1;
+boParams.alBWUB = 0.5;
 boParams.numInitPts = 0; %20; % min(20, numDims);
 boParams.commonNoise = 0.3;
 boParams.utilityFunc = 'UCB';
@@ -95,6 +98,9 @@ randTimes = zeros(numExperiments);
 nominalVal = func(normalizedNominalParams);
 
 % % First Call Direct
+diRectHist = [(1:totalNumQueries)' (1:totalNumQueries)' zeros(totalNumQueries,1)];
+diRectOptPt = 0;
+diRectTime = 0;
 % fprintf('First Running DiRect\n============================================\n');
 % diRectOpts.maxevals = totalNumQueries;
 % diRectOpts.maxits = inf;
@@ -102,8 +108,8 @@ nominalVal = func(normalizedNominalParams);
 % tic;
 % [~, diRectOptPt, diRectHist] = diRectWrap(func, bounds, diRectOpts);
 % diRectTime = toc;
-% [diRectHistory, diRectMaxVals, diRectCumRewards] = ...
-%   getDiRectResults(diRectHist, -inf, totalNumQueries);
+[diRectHistory, diRectMaxVals, diRectCumRewards] = ...
+  getDiRectResults(diRectHist, -inf, totalNumQueries);
 % fprintf('DiRectOpt = %.4f\n', diRectMaxVals(end));
 
 for expIter = 1:numExperiments
@@ -121,7 +127,8 @@ for expIter = 1:numExperiments
     [decompAdd, boAddParamsCurr, numCurrGroups] = ...
       getDecompForParams(numDims, numDimsPerGroupCands(candIter), ...
                   boAddParams, true);
-    boAddParamsCurr.diRectParams.maxevals = ceil(numDiRectEvals/numCurrGroups);
+    boAddParamsCurr.diRectParams.maxevals = ...
+      ceil(numDiRectEvals/(numDims/numDimsPerGroupCands(candIter)));
     tic;
     [~, ~, queries, valHistAdd] = ...
       bayesOptDecompAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
@@ -156,6 +163,7 @@ for expIter = 1:numExperiments
   
 end
 
+  beep;
   % Now Plot them out
   clearvars -except saveFileName;
   load(saveFileName);

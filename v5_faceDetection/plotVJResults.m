@@ -14,12 +14,15 @@ SAVE_FILE_FORMAT = 'png';
 
 resultsDir = 'results/';
 plotColours = {'c', 'b', 'r', 'm', 'k', 'g', [255 128 0]/255, ...
-  [76, 0, 153]/253, [102 102 0]/255, 'y'};
-plotShapesDot = {'o.', '+.', '*.', 'x.', 's.', 'd.', '^.', 'p.', '>.', 'v.'};
-plotShapes = {'o', '+', '*', 'x', 's', 'd', '^', 'p', '>', 'v'};
+  [76, 0, 153]/253, [102 102 0]/255, 'c', [76, 160, 163]/253, 'b', 'y'};
+plotShapesDot = {'o.', '+.', '*.', 'x.', 's.', 'd.', '^.', 'p.', '>.', 'v.', ...
+      'o.', '+.', '*.', 'x.', 's.'};
+plotShapes = {'o', '+', '*', 'x', 's', 'd', '^', 'p', '>', 'v', ...
+      'o', '+', '*', 'x', 's'};
 plotFunc = @semilogx;
 plotFunc = @loglog;
 plotFunc = @semilogy;
+plotFunc = @plot
 qq = 1:totalNumQueries;
 qqq = round(linspace(1,totalNumQueries, NUM_ERR_BARS+2)); qqq = qqq(2:end-1);
 numExperiments = size((randMaxVals(:,1) ~= 0), 1);
@@ -109,6 +112,7 @@ for regIter = 1:1
   end
 
   xlim([0 1.1*totalNumQueries]);
+  ylim([60 100]);
   titleStr = sprintf('%s, D = %d', figTitlePrefix, numDims);
   title(titleStr);
 

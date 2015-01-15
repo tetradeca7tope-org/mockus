@@ -6,7 +6,7 @@ load(saveFileName);
 % Prelims
 close all;
 PLOT_ERR_BARS = true;
-% PLOT_ERR_BARS = false;
+PLOT_ERR_BARS = false;
 NUM_ERR_BARS = 10;
 MARKER_SIZE = 8;
 LINE_WIDTH = 2;
@@ -78,6 +78,7 @@ for regIter = 1:2
 
   end
 
+  tmp= diRectReg; diRectReg = randRegMean; randRegMean = tmp; 
   % Plot Iteration statistics
   figure;
   plotFunc(qqq, randRegMean(qqq), plotShapes{3}, 'Color', plotColours{3}, ...
@@ -124,7 +125,8 @@ for regIter = 1:2
     end
   end
 
-  xlim([0 1.1*totalNumQueries]);
+%   xlim([100 1.1*totalNumQueries]);
+%   ylim([10 111]);
   titleStr = sprintf('%s, D = %d', figTitlePrefix, numDims);
   title(titleStr);
 
