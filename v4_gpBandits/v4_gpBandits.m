@@ -29,14 +29,14 @@ numDimsPerGroupCands = [4]';
 % numDimsPerGroupCands = [24 1 3 6 12]';
 % numDimsPerGroupCands = [40 1 5 10 20]';
 % numDimsPerGroupCands = [60 1 5 10 20]';
-numDimsPerGroupCands = [96 1 4 12 24]';
+% numDimsPerGroupCands = [96 1 4 12 24]';
 % numDimsPerGroupCands = [200 1 5 20 40]';
 % numDimsPerGroupCands = [300 1 5 30 60]';
 % numDimsPerGroupCands = [500 1 5 25 50]';
 
 trueNumDimsPerGroup = 3;
 % Experiment parameters
-numIters = 450;
+numIters = 100;
 numDiRectEvals = min(20000, max(100*numDims, 500));
 
 numdCands = numel(numDimsPerGroupCands);
@@ -116,9 +116,9 @@ randCumRegrets = zeros(numExperiments, totalNumQueries);
 % First Call Direct
 diRectOpts.maxevals = totalNumQueries;
 diRectOpts.maxits = inf;
-[~, ~, diRectHist] = diRectWrap(func, bounds, diRectOpts);
-[diRectHistory, diRectSimpleRegret, diRectCumRegret] =  ...
-  getDiRectResults(diRectHist, trueMaxVal, totalNumQueries);
+diRectOpts.showits = true;
+[~, ~, diRectHist, ~, diRectHistory] = diRectWrap(func, bounds, diRectOpts);
+[diRectSimpleRegret, diRectCumRegret] = getRegrets(trueMaxVal, diRectHistory);
 
 for expIter = 1:numExperiments
 
@@ -182,7 +182,7 @@ for expIter = 1:numExperiments
     'funcProperties', 'trueMaxVal', 'numDimsPerGroupCands',  ...
     'numIters', 'totalNumQueries', 'numdCands', ...
     'boKDHistories', 'boUDHistories', 'boAddHistories', 'randHistories', ...
-    'diRectHistory', ...
+    'diRectHist', 'diRectHistory', ...
     'boKDSimpleRegrets', 'boUDSimpleRegrets', 'boAddSimpleRegrets', ...
     'randSimpleRegrets', 'diRectSimpleRegret', ...
     'boKDCumRegrets', 'boUDCumRegrets', 'boAddCumRegrets', 'randCumRegrets', ...

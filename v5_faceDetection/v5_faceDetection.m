@@ -99,6 +99,7 @@ nominalVal = func(normalizedNominalParams);
 
 % % First Call Direct
 diRectHist = [(1:totalNumQueries)' (1:totalNumQueries)' zeros(totalNumQueries,1)];
+diRectHistories = 0;
 diRectOptPt = 0;
 diRectTime = 0;
 %   fprintf('First Running DiRect\n============================================\n');
@@ -106,11 +107,11 @@ diRectTime = 0;
 %   diRectOpts.maxits = inf;
 %   diRectOpts.showits = true;
 %   tic;
-%   [~, diRectOptPt, diRectHist] = diRectWrap(func, bounds, diRectOpts);
+% [~, ~, diRectHist, ~, diRectHistory] = diRectWrap(func, bounds, diRectOpts);
 %   diRectTime = toc;
-[diRectHistory, diRectMaxVals, diRectCumRewards] = ...
-  getDiRectResults(diRectHist, -inf, totalNumQueries);
+% [diRectSimpleRegret, diRectCumRegret] = getRegrets(trueMaxVal, diRectHistory);
 % fprintf('DiRectOpt = %.4f\n', diRectMaxVals(end));
+
 
 for expIter = 1:numExperiments
 

@@ -40,6 +40,7 @@ randCumRegrets = randCumRegrets(1:numExperiments, :);
 for regIter = 1:2
 
   if regIter == 1 % First Do Simple Regret
+    figTitlePrefix = 'Simple-Regret';
     % Mean
     KDRegMean = mean(boKDSimpleRegrets, 1);
     UDRegMean = mean(boUDSimpleRegrets, 1);
@@ -52,13 +53,13 @@ for regIter = 1:2
     randRegStdErr = std(randSimpleRegrets, 1)/sqrt(numExperiments);
     % For diRect
     diRectReg = diRectSimpleRegret;
-    diRectTail = 400; diRectReg(diRectTail:end) = diRectReg(diRectTail);
-    figTitlePrefix = 'Simple-Regret';
-
-    buggyPts = UDRegMean < KDRegMean;
-    KDRegMean(buggyPts) = 0.5*KDRegMean(buggyPts) + 0.5*UDRegMean(buggyPts);
+%     diRectTail = 400; diRectReg(diRectTail:end) = diRectReg(diRectTail);
+% 
+%     buggyPts = UDRegMean < KDRegMean;
+%     KDRegMean(buggyPts) = 0.5*KDRegMean(buggyPts) + 0.5*UDRegMean(buggyPts);
 
   else % Now do Cumulative Regret
+    figTitlePrefix = 'Cumulative-Regret';
     % Mean
     KDRegMean = mean(boKDCumRegrets, 1);
     UDRegMean = mean(boUDCumRegrets, 1);
@@ -70,32 +71,37 @@ for regIter = 1:2
     AddRegStdErr = std(boAddCumRegrets, 1)/sqrt(numExperiments);
     randRegStdErr = std(randCumRegrets, 1)/sqrt(numExperiments);
     % For diRect
-%     diRectReg = diRectCumRegret;
-    figTitlePrefix = 'Cumulative-Regret';
+    diRectReg = diRectCumRegret;
 
 %     buggyPts = UDRegMean < KDRegMean;
 %     KDRegMean(buggyPts) = 0.5*KDRegMean(buggyPts) + 0.5*UDRegMean(buggyPts);
 
   end
 
-  tmp= diRectReg; diRectReg = randRegMean; randRegMean = tmp; 
+  % Correct extra terms for diRect
+  diRectReg = diRectReg(1:totalNumQueries);
+
+%   tmp= diRectReg; diRectReg = randRegMean; randRegMean = tmp; 
   % Plot Iteration statistics
   figure;
   plotFunc(qqq, randRegMean(qqq), plotShapes{3}, 'Color', plotColours{3}, ...
      'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
-  if regIter == 1, % Don't plot Cum Regret for DiRect
-    plotFunc(qqq, diRectReg(qqq), plotShapes{4}, 'Color', plotColours{4}, ...
-      'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
-  end
+  plotFunc(qqq, diRectReg(qqq), plotShapes{4}, 'Color', plotColours{4}, ...
+    'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
+%   if regIter == 1, % Don't plot Cum Regret for DiRect
+%     plotFunc(qqq, diRectReg(qqq), plotShapes{4}, 'Color', plotColours{4}, ...
+%       'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
+%   end
   plotFunc(qqq, KDRegMean(qqq), plotShapes{1}, 'Color', plotColours{1}, ...
     'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
   plotFunc(qqq, UDRegMean(qqq), plotShapes{2}, 'Color', plotColours{2}, ...
     'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
-  if regIter == 1
-    legEntries = {'Random', 'DiRect', 'BO-KD', 'BO-UD'};
-  else
-    legEntries = {'Random', 'BO-KD', 'BO-UD'};
-  end
+%   if regIter == 1
+%     legEntries = {'Random', 'DiRect', 'BO-KD', 'BO-UD'};
+%   else
+%     legEntries = {'Random', 'BO-KD', 'BO-UD'};
+%   end
+  legEntries = {'Random', 'DiRect', 'BO-KD', 'BO-UD'};
   numBaseLegEntries = numel(legEntries);
   for i = 1:numdCands
     plotFunc(qqq, AddRegMean(1,qqq,i), plotShapes{4+i}, 'Color', plotColours{4+i}, ...
@@ -105,9 +111,10 @@ for regIter = 1:2
   legend(legEntries);
   % Now reproduce the curve without the bullets
   plotFunc(qq, randRegMean, 'Color', plotColours{3}, 'LineWidth', LINE_WIDTH); hold on,
-  if regIter == 1, % Don't plot Cum Regret for DiRect
-    plotFunc(qq, diRectReg, 'Color', plotColours{4}, 'LineWidth', LINE_WIDTH); hold on,
-  end
+%   if regIter == 1, % Don't plot Cum Regret for DiRect
+%     plotFunc(qq, diRectReg, 'Color', plotColours{4}, 'LineWidth', LINE_WIDTH); hold on,
+%   end
+  plotFunc(qq, diRectReg, 'Color', plotColours{4}, 'LineWidth', LINE_WIDTH); hold on,
   plotFunc(qq, KDRegMean, 'Color', plotColours{1}, 'LineWidth', LINE_WIDTH); hold on,
   plotFunc(qq, UDRegMean, 'Color', plotColours{2}, 'LineWidth', LINE_WIDTH); hold on,
   for i = 1:numdCands
