@@ -25,8 +25,15 @@ numExperiments = 1;
 numDims = 10;
 % numDimsPerGroupCands = [10 1 2 4]';
 numDimsPerGroupCands = [4]';
-% numDimsPerGroupCands = [40 1 5 10 20]';
+% numDimsPerGroupCands = [10 1 2 4]';
 % numDimsPerGroupCands = [24 1 3 6 12]';
+% numDimsPerGroupCands = [40 1 5 10 20]';
+% numDimsPerGroupCands = [60 1 5 10 20]';
+numDimsPerGroupCands = [96 1 4 12 24]';
+% numDimsPerGroupCands = [200 1 5 20 40]';
+% numDimsPerGroupCands = [300 1 5 30 60]';
+% numDimsPerGroupCands = [500 1 5 25 50]';
+
 trueNumDimsPerGroup = 3;
 % Experiment parameters
 numIters = 450;
