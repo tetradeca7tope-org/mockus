@@ -1,4 +1,4 @@
-function [ret_minval,final_xatmin,history] = diRect...
+function [ret_minval,final_xatmin,history, queries, queryVals] = diRect...
    (Problem,bounds,opts,varargin)
 % Function   : Direct Version 4.0
 % Written by : Dan Finkel (definkel@unity.ncsu.edu)
@@ -94,6 +94,13 @@ n            = size(bounds,1);
 % Determine option values
 if nargin<3, opts=[]; end
 if (nargin>=3) & (length(opts)==0), opts=[]; end
+
+if isfield(opts, 'maxevals')
+  maxEvals = opts.maxevals;
+else
+  maxEvals = inf;
+end
+
 getopts(opts, ...
  'maxits',     40,...         % maximum of iterations
  'maxevals',   max(n^3,50),... % maximum # of function evaluations
@@ -126,10 +133,10 @@ end
 
 %-- Call DIRini ---------------------------------------------------%
 [thirds , lengths, c , fc, con, feas_flags minval,xatmin,perror,...
-        history,szes,fcncounter,calltype] =...
+        history,szes,fcncounter,calltype, queries, queryVals] =...
         DIRini(Problem,n,bounds(:,1),bounds(:,2),...
         lengths,c,fc,con, feas_flags, szes,...
-        theglobalmin,maxdeep,tflag,g_nargout, impcons, varargin{:});
+        theglobalmin,maxdeep,tflag,g_nargout, impcons, maxEvals, varargin{:});
 
 ret_minval = minval;
 ret_xatmin = xatmin;
@@ -143,9 +150,10 @@ while perror > tol
    %-- Loop through the potentially optimal hrectangles -----------%
    %-- and divide -------------------------------------------------%
    for i = 1:size(S,2)
-      [lengths,fc,c,con,feas_flags,szes,fcncounter,success] = ...
+      [lengths,fc,c,con,feas_flags,szes,fcncounter,success, queries, queryVals] = ...
           DIRdivide(bounds(:,1),bounds(:,2),Problem,S(1,i),thirds,lengths,...
-          fc,c,con,feas_flags,fcncounter,szes,impcons,calltype,varargin{:});
+          fc,c,con,feas_flags,fcncounter,szes,impcons,calltype,...
+          maxEvals, queries, queryVals, varargin{:});
    end
 
    %-- update minval, xatmin --------------------------------------%
@@ -188,13 +196,13 @@ while perror > tol
 %       disp('Exceeded Max depth. Increse maxdeep')
       perror = -1;
    end
-   if g_nargout == 3
+%    if g_nargout == 3
       %-- Store History
       maxhist = size(history,1);
       history(maxhist+1,1) = itctr;
       history(maxhist+1,2) = fcncounter;
       history(maxhist+1,3) = minval;
-  end
+%   end
 
   %-- New, 06/09/2004
   %-- Call replaceinf if impcons flag is set to 1
@@ -217,18 +225,24 @@ while perror > tol
   itctr  = itctr + 1;
 end
 
-%-- Return values
-if g_nargout == 2
-    %-- return x*
-    final_xatmin = ret_xatmin;
-elseif g_nargout == 3
-    %-- return x*
-    final_xatmin = ret_xatmin;
+%-- return x*
+final_xatmin = ret_xatmin;
 
-    %-- chop off 1st row of history
-    history(1:size(history,1)-1,:) = history(2:size(history,1),:);
-    history = history(1:size(history,1)-1,:);
-end
+%-- chop off 1st row of history
+history(1:size(history,1)-1,:) = history(2:size(history,1),:);
+history = history(1:size(history,1)-1,:);
+    % %-- Return values
+    % if g_nargout == 2
+    %     %-- return x*
+    %     final_xatmin = ret_xatmin;
+    % elseif g_nargout == 3
+    %     %-- return x*
+    %     final_xatmin = ret_xatmin;
+    % 
+    %     %-- chop off 1st row of history
+    %     history(1:size(history,1)-1,:) = history(2:size(history,1),:);
+    %     history = history(1:size(history,1)-1,:);
+    % end
 return
 %------------------------------------------------------------------%
 % Function:   DIRini                                               %
@@ -238,9 +252,10 @@ return
 %             to eliminate storing floating points                 %
 %------------------------------------------------------------------%
 function [l_thirds,l_lengths,l_c,l_fc,l_con, l_feas_flags, minval,xatmin,perror,...
-        history,szes,fcncounter,calltype] = DIRini(Problem,n,a,b,...
+        history,szes,fcncounter,calltype, queries, queryVals] = ...
+          DIRini(Problem,n,a,b,...
         p_lengths,p_c,p_fc,p_con, p_feas_flags, p_szes,theglobalmin,...
-        maxdeep,tflag,g_nargout,impcons,varargin)
+        maxdeep,tflag,g_nargout,impcons, maxEvals, varargin)
 
 l_lengths    = p_lengths;
 l_c          = p_c;
@@ -248,7 +263,6 @@ l_fc         = p_fc;
 l_con        = p_con;
 l_feas_flags = p_feas_flags;
 szes         = p_szes;
-
 
 %-- start by calculating the thirds array
 %-- here we precalculate (1/3)^i which we will use frequently
@@ -280,6 +294,16 @@ calltype = DetermineFcnType(Problem,impcons);
 %l_fc(1)    = feval(f,om_point,varargin{:});
 [l_fc(1),l_con(1), l_feas_flags(1)] = ...
     CallObjFcn(Problem,l_c(:,1),a,b,impcons,calltype,varargin{:});
+  if ~isfinite(maxEvals)
+    queryStoreSize = 10001;
+  else
+    queryStoreSize = 1 + floor(maxEvals/2)*2;
+  end
+  queries = zeros(queryStoreSize, n);
+  queryVals = zeros(queryStoreSize, 1);
+  queries(1,:) = l_c(:,1)';
+  queryVals(1) = l_fc(1);
+  numQueries = 1;
 fcncounter = 1;
 
 
@@ -404,9 +428,16 @@ return
 % Created on :  10/19/2002                                         %
 % Purpose    :  Divides rectangle i that is passed in              %
 %------------------------------------------------------------------%
-function [lengths,fc,c,con,feas_flags,szes,fcncounter,pass] = ...
+function [lengths,fc,c,con,feas_flags,szes,fcncounter,pass, queries, queryVals] = ...
     DIRdivide(a,b,Problem,index,thirds,p_lengths,p_fc,p_c,p_con,...
-    p_feas_flags,p_fcncounter,p_szes,impcons,calltype,varargin)
+    p_feas_flags,p_fcncounter,p_szes,impcons,calltype, maxEvals, queries, ...
+    queryVals, varargin)
+
+  if isfinite(maxEvals)
+    queryStoreSize = 10001;
+  else
+    queryStoreSize = 1 + floor(maxEvals/2)*2;
+  end
 
 lengths    = p_lengths;
 fc         = p_fc;
@@ -415,6 +446,7 @@ szes       = p_szes;
 fcncounter = p_fcncounter;
 con        = p_con;
 feas_flags = p_feas_flags;
+
 
 %-- 1. Determine which sides are the largest
 li     = lengths(:,index);
@@ -437,7 +469,13 @@ for i = 1:lssize
     newc_right(lsi,i) = newc_right(lsi,i) + delta;
     [f_left(i), con_left(i), fflag_left(i)]    = CallObjFcn(Problem,newc_left(:,i),a,b,impcons,calltype,varargin{:});
     [f_right(i), con_right(i), fflag_right(i)] = CallObjFcn(Problem,newc_right(:,i),a,b,impcons,calltype,varargin{:});
-    fcncounter = fcncounter + 2;
+  if fcncounter < queryStoreSize 
+    queries(fcncounter+1, :) = newc_left(i);
+    queries(fcncounter+2, :) = newc_right(i);
+    queryVals(fcncounter+1) = f_left(i);
+    queryVals(fcncounter+2) = f_right(i);
+  end
+  fcncounter = fcncounter + 2;
 end
 w = [min(f_left, f_right)' ls];
 

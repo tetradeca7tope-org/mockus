@@ -45,14 +45,17 @@ end
 
   % 3. Call DIRECT
   tic,
-  [fmax, xmax, hist] = diRectWrap(func, bounds, options);
+  [fmax, xmax, hist, queries, queryVals] = diRectWrap(func, bounds, options);
+  size(queries),
+  size(queryVals),
   toc,
   numFuncEvaluations = hist(end, 2);
   fprintf('fmax: %f, xmax: %s\n# func evals: %d\n', fmax, mat2str(xmax), ...
     numFuncEvaluations);
 
   % 4. Plot iteration statistics
-  plot(hist(:,2),hist(:,3))
+  plot(hist(:,2),hist(:,3)); hold on,
+  plot(queryVals, 'm');
   xlabel('Fcn Evals');
   ylabel('f_{min}');
   title('Iteration Statistics for GP test Function');
