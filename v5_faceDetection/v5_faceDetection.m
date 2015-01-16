@@ -30,7 +30,7 @@ if doubleParams, numDims = 44;
 else numDims = 22; end
 vjOptions.numTrain = numXTrain;
 vjOptions.doubleParams = doubleParams;
-numDiRectEvals = 1000; %min(20000, max(100*numDims, 500));
+numDiRectEvals = 800; %min(20000, max(100*numDims, 500));
 numdCands = numel(numDimsPerGroupCands);
 
 % Get the function
@@ -40,7 +40,7 @@ numdCands = numel(numDimsPerGroupCands);
 % vjBounds = [ 0 4; 0 10; 5 15; 10 20; 10 20; 15 25; 15 25; 20 30; ...
 %   20 30; 30 40; 30 40; 45 55; 50 60; 45 55; 65 75; 60 70; 65 75; ...
 %   75 85; 80 90; 85 95; 100 110; 100 110];
-vjBounds = [ 0 2; 0 10; 5 15; 10 20; 10 20; 15 25; 15 25; 20 30; ...
+vjBounds = [0 2; 0 10; 5 15; 10 20; 10 20; 15 25; 15 25; 20 30; ...
   20 30; 30 40; 30 40; 45 55; 50 60; 45 55; 65 75; 60 70; 65 75; ...
   75 85; 80 90; 85 95; 100 110; 100 110];
 nominalParams = [0.8227 6.9566 9.4985 18.4130 15.3241 21.0106 23.9188 24.5279 ... 
@@ -58,7 +58,7 @@ saveFileName = sprintf('%svj%d-%d-%s-%s.mat', resultsDir, numDims, numXTrain,...
 % Parameters for additive Bayesian optimization
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
-boParams.alBWUB = 0.5;
+boParams.alBWUB = 1;
 boParams.numInitPts = 0; %20; % min(20, numDims);
 boParams.commonNoise = 0.3;
 boParams.utilityFunc = 'UCB';
@@ -69,7 +69,7 @@ boParams.useSamePr = true;
 boParams.useSameSm = true;
 boParams.fixPr = false;
 boParams.fixSm = false;
-boParams.sigmaPrRange = [5 25];
+boParams.sigmaPrRange = [5 25]; %[5 25];
 boParams.useFixedBandwidth = false;
 
 % The rest - arbitrary decompositions
@@ -101,13 +101,13 @@ nominalVal = func(normalizedNominalParams);
 diRectHist = [(1:totalNumQueries)' (1:totalNumQueries)' zeros(totalNumQueries,1)];
 diRectOptPt = 0;
 diRectTime = 0;
-% fprintf('First Running DiRect\n============================================\n');
-% diRectOpts.maxevals = totalNumQueries;
-% diRectOpts.maxits = inf;
-% diRectOpts.showits = true;
-% tic;
-% [~, diRectOptPt, diRectHist] = diRectWrap(func, bounds, diRectOpts);
-% diRectTime = toc;
+%   fprintf('First Running DiRect\n============================================\n');
+%   diRectOpts.maxevals = totalNumQueries;
+%   diRectOpts.maxits = inf;
+%   diRectOpts.showits = true;
+%   tic;
+%   [~, diRectOptPt, diRectHist] = diRectWrap(func, bounds, diRectOpts);
+%   diRectTime = toc;
 [diRectHistory, diRectMaxVals, diRectCumRewards] = ...
   getDiRectResults(diRectHist, -inf, totalNumQueries);
 % fprintf('DiRectOpt = %.4f\n', diRectMaxVals(end));
