@@ -82,7 +82,7 @@ for regIter = 1:1
       'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
   end
   if regIter == 1
-    legEntries = {'Random', 'DiRect', 'BO-KD', 'BO-UD'};
+    legEntries = {'Random', 'DiRect' };
   else
     legEntries = {'Random', 'BO-KD', 'BO-UD'};
   end

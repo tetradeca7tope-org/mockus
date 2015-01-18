@@ -31,6 +31,7 @@ else numDims = 22; end
 vjOptions.numTrain = numXTrain;
 vjOptions.doubleParams = doubleParams;
 numDiRectEvals = 800; %min(20000, max(100*numDims, 500));
+numInitPts = 10;
 numdCands = numel(numDimsPerGroupCands);
 
 % Get the function
@@ -59,7 +60,10 @@ saveFileName = sprintf('%svj%d-%d-%s-%s.mat', resultsDir, numDims, numXTrain,...
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 1;
-boParams.numInitPts = 0; %20; % min(20, numDims);
+% boParams.numInitPts = 0; %20; % min(20, numDims);
+fprintf('First obtaining initialization\n');
+boParams.initPts = [normalizedNominalParams; rand(numInitPts-1, numDims)];
+boParams.initVals = func(boParams.initPts);
 boParams.commonNoise = 0.3;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
@@ -77,7 +81,7 @@ boAddParams = boParams;
 boAddParams.decompStrategy = 'partialLearn';
 boAddParams.diRectParams.maxits = inf;
 
-totalNumQueries = numIters + boParams.numInitPts;
+totalNumQueries = numIters + numInitPts;
 % Initialize an array for storing the query points
 boAddQueryPts = zeros(totalNumQueries, numDims, numExperiments, numdCands);
 randQueryPts = zeros(totalNumQueries, numDims, numExperiments);
