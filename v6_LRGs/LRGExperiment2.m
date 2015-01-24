@@ -43,9 +43,6 @@ classdef LRGExperiment < handle
 
     % Constructor
     function obj = LRGExperiment(numDims, coordOrder)
-      obj.coordOrder = coordOrder;
-      obj.invertOrder = zeros(numDims, 1);
-      obj.invertOrder(coordOrder) = 1:numDims;
       obj.numDims = numDims;
       obj.bounds = [repmat([0 1], numDims-9, 1); obj.problemSpaceBounds];
       obj.bounds = obj.bounds(coordOrder, :);

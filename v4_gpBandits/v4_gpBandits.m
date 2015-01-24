@@ -37,7 +37,7 @@ numDimsPerGroupCands = [4]';
 trueNumDimsPerGroup = 3;
 % Experiment parameters
 numIters = 100;
-numDiRectEvals = min(20000, max(100*numDims, 500));
+numDiRectEvals = min(5000, max(100*numDims, 500));
 
 numdCands = numel(numDimsPerGroupCands);
 % Get the function
