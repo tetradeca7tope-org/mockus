@@ -10,14 +10,15 @@ close all;
 fprintf('Test 1\n===================\n');
   % 1. Establish bounds for variables
 %   options.maxits = 8;
-  options.maxevals = 100;
+  options.maxevals = 920;
+  options.showits = 1;
 
 % choose function
 funcChoice = 1;
 
 % Function 1
 if funcChoice == 1
-  numDims = 5;
+  numDims = 40;
   bounds = repmat([0, 1], numDims, 1);
   funcProperties.gaussVar = 0.005 * sqrt(numDims);
   funcProperties.covarDiag = funcProperties.gaussVar * ones(1, numDims);

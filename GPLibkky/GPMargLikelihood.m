@@ -13,8 +13,7 @@ function [mu, K, funcH, sigmaSmOpt, sigmaPrOpt] = GPMargLikelihood(X, y, ...
 % - Same applies to hyperParams.{sigmaPr, sigmaPrRange}. The default value for
 %   sigmaPrRange would be the standard deviation of the y values
 % - hyperParams.noise contains the observation noise. If not given we will add
-%   some noise for numerical stability. Zero observation noise should be
-%   specified.
+%   some noise for numerical stability. Zero observation noise should be %   specified.
 
   % prelims
   numDims = size(X, 2);
@@ -38,7 +37,6 @@ function [mu, K, funcH, sigmaSmOpt, sigmaPrOpt] = GPMargLikelihood(X, y, ...
   else
     sigmaPrRange = std(y);
   end
-  sigmaPrRange,
   % Now set the Bounds
   % ---------------------------------------------------
   if numel(sigmaSmRange) == 2, sigmaSmBounds = sigmaSmRange;
@@ -60,9 +58,10 @@ function [mu, K, funcH, sigmaSmOpt, sigmaPrOpt] = GPMargLikelihood(X, y, ...
   elseif hyperParams.sigmaPr ~= 0 % only optimize over sigmaSm
     sigmaPrOpt = hyperParams.sigmaPr;
     % Prepare the function to be maximized by Direct
-    nlmlF = @(t) normalizedMargLikelihood(t, sigmaPrOpt, X, y, ...
+    nlmlF = @(t) normalizedMargLikelihood(exp(t), exp(sigmaPrOpt), X, y, ...
                    hyperParams.meanFunc, hyperParams.noise);
-    [~, sigmaSmOpt] = diRectWrap(nlmlF, sigmaSmBounds, diRectOpt);
+    [~, logSigmaSmOpt] = diRectWrap(nlmlF, log(sigmaSmBounds), diRectOpt);
+    sigmaSmOpt = exp(logSigmaSmOpt);
     fprintf('Picked bw/scale = %.5f (%0.4f, %.4f), %.5f (fixed)\n', ...
                 sigmaSmOpt, sigmaSmBounds(1), sigmaSmBounds(2), ...
                 sigmaPrOpt );
@@ -70,21 +69,22 @@ function [mu, K, funcH, sigmaSmOpt, sigmaPrOpt] = GPMargLikelihood(X, y, ...
   elseif hyperParams.sigmaSm ~= 0 % only optimize over sigmaPr
     sigmaSmOpt = hyperParams.sigmaSm;
     % Prepare the function to be maximized by Direct
-    nlmlF = @(t) normalizedMargLikelihood(sigmaSmOpt, t, X, y, ...
+    nlmlF = @(t) normalizedMargLikelihood(exp(sigmaSmOpt), exp(t), X, y, ...
                    hyperParams.meanFunc, hyperParams.noise);
-    [~, sigmaPrOpt] = diRectWrap(nlmlF, sigmaPrBounds, diRectOpt);
+    [~, logSigmaPrOpt] = diRectWrap(nlmlF, sigmaPrBounds, diRectOpt);
+    sigmaPrOpt = exp(logSigmaPrOpt);
     fprintf('Picked bw/scale = %.5f (given), %.5f (%0.4f, %.4f)\n', ...
                 sigmaSmOpt, ...
                 sigmaPrOpt, sigmaPrBounds(1), sigmaPrBounds(2) );
     
   else  % optimize over both
     % Prepare the function to be maximized by Direct
-    bounds = [sigmaSmBounds; sigmaPrBounds];
-    nlmlF = @(t) normalizedMargLikelihood(t(1), t(2), X, y, ...
+    bounds = [log(sigmaSmBounds); log(sigmaPrBounds)];
+    nlmlF = @(t) normalizedMargLikelihood(exp(t(1)), exp(t(2)), X, y, ...
       hyperParams.meanFunc, hyperParams.noise);
     [~, optParams] = diRectWrap(nlmlF, bounds, diRectOpt);
-    sigmaSmOpt = (optParams(1));
-    sigmaPrOpt = (optParams(2));
+    sigmaSmOpt = exp(optParams(1));
+    sigmaPrOpt = exp(optParams(2));
     fprintf('Picked bw/scale = %.5f (%0.4f, %.4f), %.5f (%0.4f, %.4f)\n', ...
                 sigmaSmOpt, sigmaSmBounds(1), sigmaSmBounds(2), ...
                 sigmaPrOpt, sigmaPrBounds(1), sigmaPrBounds(2) );
@@ -97,7 +97,8 @@ function [mu, K, funcH, sigmaSmOpt, sigmaPrOpt] = GPMargLikelihood(X, y, ...
 
 end
 
-function nlml = normalizedMargLikelihood(sigmaSm, sigmaPr, X, y, meanFunc,noise)
+function nlml = normalizedMargLikelihood(sigmaSm, sigmaPr, X, y, ...
+  meanFunc,noise)
   numData = size(X, 1);
   D = Dist2GP(X, X);
   K = sigmaPr * exp(-0.5*D/sigmaSm^2);

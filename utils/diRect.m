@@ -102,7 +102,7 @@ else
 end
 
 getopts(opts, ...
- 'maxits',     40,...         % maximum of iterations
+ 'maxits',     inf,...         % maximum of iterations
  'maxevals',   max(n^3,50),... % maximum # of function evaluations
  'maxdeep',    100,...        % maximum number of side divisions
  'testflag',   0,...          % terminate if within a relative tolerence of f_opt
@@ -463,24 +463,35 @@ newc_left  = oldc(:,ones(1,lssize));
 newc_right = oldc(:,ones(1,lssize));
 f_left     = zeros(1,lssize);
 f_right    = zeros(1,lssize);
+% I am defining these to handle the early stopping criterion.
+con_left = zeros(1,lssize);
+con_right = zeros(1,lssize);
+fflag_left = zeros(1,lssize);
+fflag_right = zeros(1,lssize);
+
 for i = 1:lssize
-    lsi               = ls(i);
-    newc_left(lsi,i)  = newc_left(lsi,i) - delta;
-    newc_right(lsi,i) = newc_right(lsi,i) + delta;
-    [f_left(i), con_left(i), fflag_left(i)]    = CallObjFcn(Problem,newc_left(:,i),a,b,impcons,calltype,varargin{:});
-    [f_right(i), con_right(i), fflag_right(i)] = CallObjFcn(Problem,newc_right(:,i),a,b,impcons,calltype,varargin{:});
-  if fcncounter < queryStoreSize 
-    queries(fcncounter+1, :) = newc_left(i);
-    queries(fcncounter+2, :) = newc_right(i);
-    queryVals(fcncounter+1) = f_left(i);
-    queryVals(fcncounter+2) = f_right(i);
+  if fcncounter >= maxEvals
+%     fcncounter,
+    break; % Don't go beyond maxEvals
+  else
+      lsi               = ls(i);
+      newc_left(lsi,i)  = newc_left(lsi,i) - delta;
+      newc_right(lsi,i) = newc_right(lsi,i) + delta;
+      [f_left(i), con_left(i), fflag_left(i)]    = CallObjFcn(Problem,newc_left(:,i),a,b,impcons,calltype,varargin{:});
+      [f_right(i), con_right(i), fflag_right(i)] = CallObjFcn(Problem,newc_right(:,i),a,b,impcons,calltype,varargin{:});
+    if fcncounter < queryStoreSize 
+      queries(fcncounter+1, :) = newc_left(i);
+      queries(fcncounter+2, :) = newc_right(i);
+      queryVals(fcncounter+1) = f_left(i);
+      queryVals(fcncounter+2) = f_right(i);
+    end
+    fcncounter = fcncounter + 2;
   end
-  fcncounter = fcncounter + 2;
 end
 w = [min(f_left, f_right)' ls];
-
 %-- 3. Sort w for division order
 [V,order] = sort(w,1);
+
 
 %-- 4. Make divisions in order specified by order
 for i = 1:size(order,1)
