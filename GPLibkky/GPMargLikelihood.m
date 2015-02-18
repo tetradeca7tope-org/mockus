@@ -18,7 +18,7 @@ function [mu, K, funcH, sigmaSmOpt, sigmaPrOpt] = GPMargLikelihood(X, y, ...
   % prelims
   numDims = size(X, 2);
   numPts = size(X, 1);
-  diRectOpt.maxits = 20; % max iterations for DiRect
+  diRectOpt.maxevals = 100; % max evaluations for DiRect
 
   % Prepare bounds for the parameters
   % Bandwidth
