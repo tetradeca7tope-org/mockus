@@ -21,10 +21,10 @@ warning off;
 % another which knows the grouping sizes and attempts to find them.
 
 % Problem parameters
-numExperiments = 1;
+numExperiments = 20;
 numDims = 10;
-% numDimsPerGroupCands = [10 1 2 4]';
-numDimsPerGroupCands = [4]';
+numDimsPerGroupCands = [10 1 2 3 4]';
+% numDimsPerGroupCands = [4]';
 % numDimsPerGroupCands = [10 1 2 4]';
 % numDimsPerGroupCands = [24 1 3 6 12]';
 % numDimsPerGroupCands = [40 1 5 10 20]';
@@ -36,7 +36,7 @@ numDimsPerGroupCands = [4]';
 
 trueNumDimsPerGroup = 3;
 % Experiment parameters
-numIters = 100;
+numIters = 900;
 numDiRectEvals = min(5000, max(100*numDims, 500));
 
 numdCands = numel(numDimsPerGroupCands);
@@ -63,7 +63,7 @@ stdFth = std(fth);
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
-boParams.numInitPts = 0; %20; % min(20, numDims);
+boParams.numInitPts = 10; %20; % min(20, numDims);
 boParams.commonNoise = 0.01 * stdFth;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
@@ -138,16 +138,16 @@ for expIter = 1:numExperiments
   boKDSimpleRegrets(expIter, :) = sR';
   boKDCumRegrets(expIter, :) = cR';
 
-  % Learn Decomposition
-  fprintf('\nKnown Grouping Unknown Decomposition\n');
-  [decompUD, boUDParams] = ...
-    getDecompForParams(numDims, trueNumDimsPerGroup, boUDParams);
-  [~, ~, ~, valHistUD] = ...
-    bayesOptDecompAddGP(func, decompUD, bounds, numIters, boUDParams);
-  [sR, cR] = getRegrets(trueMaxVal, valHistUD);
-  boUDHistories(expIter, :) = valHistUD';
-  boUDSimpleRegrets(expIter, :) = sR';
-  boUDCumRegrets(expIter, :) = cR';
+%   % Learn Decomposition
+%   fprintf('\nKnown Grouping Unknown Decomposition\n');
+%   [decompUD, boUDParams] = ...
+%     getDecompForParams(numDims, trueNumDimsPerGroup, boUDParams);
+%   [~, ~, ~, valHistUD] = ...
+%     bayesOptDecompAddGP(func, decompUD, bounds, numIters, boUDParams);
+%   [sR, cR] = getRegrets(trueMaxVal, valHistUD);
+%   boUDHistories(expIter, :) = valHistUD';
+%   boUDSimpleRegrets(expIter, :) = sR';
+%   boUDCumRegrets(expIter, :) = cR';
 
   % For the candidates in numDimsPerGroupCands
   for candIter = 1:numdCands
@@ -156,10 +156,7 @@ for expIter = 1:numExperiments
     [decompAdd, boAddParamsCurr, numCurrGroups] = ...
       getDecompForParams(numDims, numDimsPerGroupCands(candIter), ...
                   boAddParams, true);
-    boAddParamsCurr.diRectParams.maxevals = ceil(numDiRectEvals/numCurrGroups);
-    % Now call BO
-%     [~, ~, ~, valHistAdd] = ...
-%       bayesOptUDAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
+    boAddParamsCurr.diRectParams.maxevals = ceil(0.9 * numDiRectEvals/numCurrGroups);
     [~, ~, ~, valHistAdd] = ...
       bayesOptDecompAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);

@@ -17,6 +17,7 @@ numIters = 400;
 numDims = 47;  numDimsPerGroupCands = [47 1 4 8 16];
 numInitPts = 10;
 numDiRectEvals = min(5000, max(100*numDims, 500));
+lpSoveBounds = ... % TODO: @Fan: You need to read their config file for this.
 
 % Other derived Parameters
 numdCands = numel(numDimsPerGroupCands);

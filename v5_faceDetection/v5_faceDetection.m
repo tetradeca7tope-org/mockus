@@ -14,9 +14,9 @@ warning off;
 
 
 % Problem parameters
-numExperiments = 1;
+numExperiments = 20;
 numIters = 300;
-numXTrain = 100;
+numXTrain = 500;
 numXTest = 10;
 numDimsPerGroupCands = [22 1 2 3 4 5 6 8 11]';
 doubleParams = false;
@@ -30,7 +30,7 @@ if doubleParams, numDims = 44;
 else numDims = 22; end
 vjOptions.numTrain = numXTrain;
 vjOptions.doubleParams = doubleParams;
-numDiRectEvals = 800; %min(20000, max(100*numDims, 500));
+numDiRectEvals = 400; %min(20000, max(100*numDims, 500));
 numInitPts = 10;
 numdCands = numel(numDimsPerGroupCands);
 
@@ -61,9 +61,6 @@ boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 1;
 % boParams.numInitPts = 0; %20; % min(20, numDims);
-fprintf('First obtaining initialization\n');
-boParams.initPts = [normalizedNominalParams; rand(numInitPts-1, numDims)];
-boParams.initVals = func(boParams.initPts);
 boParams.commonNoise = 0.3;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
@@ -106,15 +103,18 @@ diRectHist = [(1:totalNumQueries)' (1:totalNumQueries)' zeros(totalNumQueries,1)
 diRectHistories = 0;
 diRectOptPt = 0;
 diRectTime = 0;
-%   fprintf('First Running DiRect\n============================================\n');
-%   diRectOpts.maxevals = totalNumQueries;
-%   diRectOpts.maxits = inf;
-%   diRectOpts.showits = true;
-%   tic;
-% [~, ~, diRectHist, ~, diRectHistory] = diRectWrap(func, bounds, diRectOpts);
-%   diRectTime = toc;
-% [diRectSimpleRegret, diRectCumRegret] = getRegrets(trueMaxVal, diRectHistory);
-% fprintf('DiRectOpt = %.4f\n', diRectMaxVals(end));
+diRectMaxVals = 0;
+diRectCumRewards = 0;
+diRectHistory = 0;
+  fprintf('First Running DiRect\n============================================\n');
+  diRectOpts.maxevals = totalNumQueries;
+  diRectOpts.maxits = inf;
+  diRectOpts.showits = true;
+  tic;
+[~, ~, diRectHist, ~, diRectHistory] = diRectWrap(func, bounds, diRectOpts);
+  diRectTime = toc;
+[diRectMaxVals, diRectCumRewards] = getRegrets(-inf, diRectHistory);
+fprintf('DiRectOpt = %.4f\n', diRectMaxVals(end));
 
 
 for expIter = 1:numExperiments
@@ -124,6 +124,11 @@ for expIter = 1:numExperiments
     expIter, numExperiments, nominalVal);
   fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
   fprintf('==============================================================\n');
+
+  % First obtain initialization for all BO mthods
+%   boParams.initPts = [normalizedNominalParams; rand(numInitPts-1, numDims)];
+  boAddParams.initPts = [rand(numInitPts, numDims)];
+  boAddParams.initVals = func(boAddParams.initPts);
 
   % For the candidates in numDimsPerGroupCands
   for candIter = 1:numdCands

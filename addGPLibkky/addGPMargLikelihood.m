@@ -13,6 +13,8 @@ function [mu, KPost, Mus, KPosts, combinedFuncH, funcHs, ...
 %                               optimizing over them.
 % - sigmaSmRanges, sigmaPrRanges: same as above, but if using different values
 %     the ranges should be given here.
+% This assumes that the decomposition is known and picks the other kernel hyper
+% parameters.
 
   % prelims
   numDims = size(X, 1);
@@ -137,14 +139,15 @@ function [mu, KPost, Mus, KPosts, combinedFuncH, funcHs, ...
   elseif hyperParams.fixSm
     % only optimize over the scale paraemeter 
     if useSamePr
-      nlmlF = @(t) normMargLikelihood(sigmaSmOpts, t * oneVec, ...
+      nlmlF = @(t) normMargLikelihood(sigmaSmOpts, exp(t) * oneVec, ...
         decomposition, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
-      [~, optPr] = diRectWrap(nlmlF, sigmaPrBound, diRectOptions);
-      sigmaPrOpts = optPr * oneVec;
+      [~, logOptPr] = diRectWrap(nlmlF, log(sigmaPrBound), diRectOptions);
+      sigmaPrOpts = exp(logOptPr) * oneVec;
     else
-      nlmlF = @(t) normMargLikelihood(sigmaSmOpts, t, ...
+      nlmlF = @(t) normMargLikelihood(sigmaSmOpts, exp(t), ...
         decomposition, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
-      [~, sigmaPrOpts] = diRectWrap(nlmlF, sigmaPrBounds, diRectOptions);
+      [~, logSigmaPrOpts] = diRectWrap(nlmlF, log(sigmaPrBounds),diRectOptions);
+      sigmaPrOpts = exp(logSigmaPrOpts);
     end
 
   % 3. If fixing only the Scale 
@@ -152,15 +155,15 @@ function [mu, KPost, Mus, KPosts, combinedFuncH, funcHs, ...
   elseif hyperParams.fixPr
     % only optimize over the bandwidth parameter
     if useSamePr
-      nlmlF = @(t) normMargLikelihood(t * oneVec, sigmaPrOpts,  ...
+      nlmlF = @(t) normMargLikelihood(exp(t) * oneVec, sigmaPrOpts,  ...
         decomposition, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
-      [~, optSm] = diRectWrap(nlmlF, sigmaSmBound, diRectOptions);
-      sigmaSmOpts = optSm * oneVec;
+      [~, logOptSm] = diRectWrap(nlmlF, log(sigmaSmBound), diRectOptions);
+      sigmaSmOpts = exp(logOptSm) * oneVec;
     else
-      nlmlF = @(t) normMargLikelihood(t, sigmaPrOpts, ...
+      nlmlF = @(t) normMargLikelihood(exp(t), sigmaPrOpts, ...
         decomposition, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
-      [~, sigmaSmOpts] = diRectWrap(nlmlF, sigmaSmBounds, diRectOptions);
-
+      [~, logSigmaSmOpts] = diRectWrap(nlmlF, log(sigmaSmBounds), diRectOptions);
+      sigmaSmOpts = exp(logSigmaSmOpts);
     end
 
   % 4. If fixing neither
@@ -168,39 +171,40 @@ function [mu, KPost, Mus, KPosts, combinedFuncH, funcHs, ...
   else
     % 4.1 If using the same for both scale and bandwidth for all groups
     if useSameSm && useSamePr
-      nlmlF = @(t) normMargLikelihood( t(1)*oneVec, t(2)*oneVec, ...
+      nlmlF = @(t) normMargLikelihood( exp(t(1))*oneVec, exp(t(2))*oneVec, ...
         decomposition, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
-      diRectBounds = [sigmaSmBound; sigmaPrBound];
+      diRectBounds = log([sigmaSmBound; sigmaPrBound]);
       [~, optParams] = diRectWrap(nlmlF, diRectBounds, diRectOptions);
-      sigmaSmOpts = optParams(1) * oneVec;
-      sigmaPrOpts = optParams(2) * oneVec;
+      sigmaSmOpts = exp(optParams(1)) * oneVec;
+      sigmaPrOpts = exp(optParams(2)) * oneVec;
 
     % 4.2 If using the same smoothness for all groups
     elseif useSameSm
-      nlmlF = @(t) normMargLikelihood( t(1)*oneVec, t(2:end) * oneVec, ...
+      nlmlF = @(t) normMargLikelihood( exp(t(1))*oneVec, exp(t(2:end)) * oneVec, ...
         decomposition, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
-      diRectBounds = [sigmaSmBound; sigmaPrBounds];
+      diRectBounds = log([sigmaSmBound; sigmaPrBounds]);
       [~, optParams] = diRectWrap(nlmlF, diRectBounds, diRectOptions);
-      sigmaSmOpts = optParams(1) * oneVec;
-      sigmaPrOpts = optParams(2:end);
+      sigmaSmOpts = exp(optParams(1)) * oneVec;
+      sigmaPrOpts = exp(optParams(2:end));
 
     % 4.3 If using the same scale
     elseif useSamePr
-      nlmlF = @(t) normMargLikelihood( t(1:numGroups), t(end) * oneVec, ...
+      nlmlF = @(t) normMargLikelihood( exp(t(1:numGroups)), exp(t(end)) * oneVec, ...
         decomposition, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
-      diRectBounds = [sigmaSmBounds; sigmaPrBound];
+      diRectBounds = log([sigmaSmBounds; sigmaPrBound]);
       [~, optParams] = diRectWrap(nlmlF, diRectBounds, diRectOptions);
-      sigmaSmOpts = optParams(1:numGroups); 
-      sigmaPrOpts = optParams(end) * oneVec;
+      sigmaSmOpts = exp(optParams(1:numGroups)); 
+      sigmaPrOpts = exp(optParams(end)) * oneVec;
 
     % 4.4 If using different scales and bws
     else
-      nlmlF = @(t) normMargLikelihood( t(1:numGroups), t(numGroups+1:end), ...
+      fprintf('Samy !');
+      nlmlF = @(t) normMargLikelihood( exp(t(1:numGroups)), exp(t(numGroups+1:end)), ...
         decomposition, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
-      diRectBounds = [sigmaSmBounds; sigmaPrBounds];
+      diRectBounds = log([sigmaSmBounds; sigmaPrBounds]);
       [~, optParams] = diRectWrap(nlmlF, diRectBounds, diRectOptions);
-      sigmaSmOpts = optParams(1:numGroups);
-      sigmaPrOpts = optParams(numGroups+1 : end); 
+      sigmaSmOpts = exp(optParams(1:numGroups));
+      sigmaPrOpts = exp(optParams(numGroups+1 : end)); 
 
     end %  if useSameSm && useSamePr
 

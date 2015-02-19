@@ -10,9 +10,9 @@ close all;
 clear all;
 
 % Set parameters
-numDims = 10;
-m = 200; %*numDims;
-numDimsPerGroup = 3;
+numDims = 40;
+m = 500; %*numDims;
+numDimsPerGroup = 12;
 
 % Test 1
 % 2 1D examples
@@ -41,7 +41,7 @@ hyperParams.commonNoise = 0.01 * std(Y);
 hyperParams.meanFuncs = [];
 hyperParams.commonMeanFunc = [];
 hyperParams.sigmaPrRange = [0.01 10] * std(Y);
-hyperParams.sigmaSmRange = [0.01 100] * norm(std(X));
+hyperParams.sigmaSmRange = [0.01 100] * norm(std(X))/numGroups;
 dummyPt = zeros(0, numDims);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,7 +57,10 @@ dummyPt = zeros(0, numDims);
 % If a test for addGPDecompMargLikelihood
 decomp.M = numGroups;
 decomp.d = numDimsPerGroup;
-hyperParams.decompStrategy = 'learn';
+if numDims < 12, hyperParams.decompStrategy = 'learn';
+else, hyperParams.decompStrategy = 'partialLearn';
+end
+  
 [mu, KPost, Mus, KPosts, combinedFuncH, ~, funcHs, sigmaSmOpts, sigmaPrOpts, ...
   A, learnedDecomp] = addGPDecompMargLikelihood(X, Y, dummyPt, decomp, ...
   hyperParams);

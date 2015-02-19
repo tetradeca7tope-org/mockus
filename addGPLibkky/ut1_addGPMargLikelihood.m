@@ -26,12 +26,14 @@ Y = f(X);
 
 % Perform Additive GP Regression
 decomposition = { [1], [2] };
-hyperParams.useSameSm = false;
+hyperParams.useSameSm = true;
 hyperParams.useSamePr = true;
 hyperParams.fixSm = false;
 hyperParams.fixPr = false;
 hyperParams.sigmaSmRanges = [];
+hyperParams.sigmaSmRange = [];
 hyperParams.sigmaPrRange = [];
+hyperParams.sigmaPrRanges = [];
 hyperParams.noises = 0.00 * std(Y) * ones(numGroups, 1);
 hyperParams.commonNoise = 0.01 * std(Y);
 hyperParams.meanFuncs = [];

@@ -26,7 +26,8 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
   % The Decomposition
   % -----------------------------------------------------
   gpHyperParams.decompStrategy = params.decompStrategy;
-    if strcmp(params.decompStrategy, DECOMP_KNOWN) decomposition = decomp;
+    if strcmp(params.decompStrategy, DECOMP_KNOWN) 
+      decomposition = decomp;
       numGroups = numel(decomposition);
       % Do some diagnostics on the decomposition and print them out
       relevantCoords = cell2mat(decomposition');
@@ -145,7 +146,7 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
 
     if mod(boIter, NUM_ITERS_PER_PARAM_RELEARN) == 0
       fprintf('Additive GP BO iter %d/ %d. MaxVal: %0.4f CumReward: %0.4f\n',...
-        boIter, numIters, currMaxVal, sum(boVals)/boIter );
+        boIter, numIters, currMaxVal, sum(boVals)/(boIter+numInitPts) );
     end
 
     % Prelims
@@ -212,7 +213,7 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
     % Now obtain the next point
     [nextPt, ~, nextPtStd] = getNextQueryPt(params, combFuncH, funcHs, ...
       learnedDecomp, currBoVals, bounds);
-    % If it is too close, perturn it a bit
+    % If it is too close, perturb it a bit
     if min( sqrt( sum( bsxfun(@minus, currBoQueries, nextPt).^2, 2) ))/...
           alCurrBW< 1e-10 
       while min( sqrt( sum( bsxfun(@minus, currBoQueries, nextPt).^2,2)))/...
@@ -251,6 +252,8 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
 end
 
 
+% function to obtain the next query point
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [nextPt, nextPtMean, nextPtStd, nextPtUtil] = ...
   getNextQueryPt(params, combFuncH, funcHs, decomposition, boVals, bounds)
 

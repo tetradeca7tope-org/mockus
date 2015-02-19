@@ -39,8 +39,6 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
       M = decomp.M;
       d = decomp.d;
       p = d*M;
-      % Number of trials for partial learning
-  %     NUM_TRIALS_FOR_PLEARN = M*d;
       decomposition = cell(M, 1);
       for i = 1:M
         decomposition{i} = ((i-1)*d +1) : (i*d) ;
@@ -105,7 +103,7 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   sigmaSmBound = hyperParams.sigmaSmRange;
   sigmaPrBound = hyperParams.sigmaPrRange;
   diRectOptions.maxits = numBwSigmaDiRectIters;
-  diRectBounds = [sigmaSmBound; sigmaPrBound];
+  diRectBounds = log([sigmaSmBound; sigmaPrBound]);
 
   % Learn the Decomposition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   if ~strcmp(hyperParams.decompStrategy, DECOMP_KNOWN)
@@ -113,11 +111,11 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
     % As the first A, use an arbitrary orthogonal matrix
     A = randn(D, p); A = orth(A);
 
-    nlmlF = @(t) normRotMargLikelihood( t(1)*oneVec, t(2)*oneVec, ...
+    nlmlF = @(t) normRotMargLikelihood( exp(t(1))*oneVec, exp(t(2))*oneVec, ...
       decomposition, A, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
     [~, optParams] = diRectWrap(nlmlF, diRectBounds, diRectOptions);
-    sigmaSmOpts = optParams(1) * oneVec;
-    sigmaPrOpts = optParams(2) * oneVec;
+    sigmaSmOpts = exp(optParams(1)) * oneVec;
+    sigmaPrOpts = exp(optParams(2)) * oneVec;
 
     % Now optimze w.r.t A
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,11 +138,11 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   % Learn the Decomposition Ends here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   % Finally optimize w.r.t h and sigma again
-  nlmlF = @(t) normRotMargLikelihood( t(1)*oneVec, t(2)*oneVec, ...
+  nlmlF = @(t) normRotMargLikelihood( exp(t(1))*oneVec, exp(t(2))*oneVec, ...
     decomposition, A, X, y, meanFuncs, commonMeanFunc, noises, commonNoise);
   [~, optParams] = diRectWrap(nlmlF, diRectBounds, diRectOptions);
-  sigmaSmOpts = optParams(1) * oneVec;
-  sigmaPrOpts = optParams(2) * oneVec;
+  sigmaSmOpts = exp(optParams(1)) * oneVec;
+  sigmaPrOpts = exp(optParams(2)) * oneVec;
 
   % Finally Train the GP
   gpHyperParams.commonMeanFunc = commonMeanFunc;
