@@ -183,7 +183,7 @@ while perror > tol
          done = 1;
       end
       %-- Have we exceeded the maxevals?
-      if fcncounter > maxevals
+      if fcncounter >= maxevals
 %          disp('Exceeded max fcn evals. Increase maxevals')
          done = 1;
       end
