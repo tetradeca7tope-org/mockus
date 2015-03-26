@@ -2,7 +2,7 @@
 
 close all;
 clear all;
-LIBPATH = '../../libs/';
+LIBPATH = '~/libs/kky-matlab/';
 addpath([LIBPATH 'utils']); 
 addpath([LIBPATH 'ancillary']); 
 addpath([LIBPATH 'GPLibkky']); 
