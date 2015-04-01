@@ -19,7 +19,6 @@ else
   boVals = [];
 
   numDecompChoices = numel(decomp);
-%  numIters = numIters / numDecompChoices;
   
   for i=1:numDecompChoices
     thisDecomp.d = decomp{i}.d;
@@ -34,7 +33,7 @@ else
     
     params.initPts = boQueries;
     params.initVals = boVals; 
-  
+
   end
   
 end
