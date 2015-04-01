@@ -45,6 +45,6 @@ else
     params.initVals = boVals; 
   end
   
-  size(boVals)
+  size(boVals);
 end
 end
