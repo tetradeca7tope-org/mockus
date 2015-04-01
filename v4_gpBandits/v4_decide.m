@@ -13,13 +13,33 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
+%numExperiments = 2;
+%numDims = 40;
+%
+%numDiRectEvals = 500;
+%trueNumDimsPerGroup = 8;
+%numIters = 400;
+%
+%numDimsPerGroupCands = [40 4 8 10 16]';
+
+% tiny experiments 
 numExperiments = 1;
-numDims = 10;
+numDims = 4;
 
-numDiRectEvals = 500;
-trueNumDimsPerGroup = 3;
-numIters = 100;
+numDiRectEvals = 5;
+trueNumDimsPerGroup = 2;
+numIters = 12;
 
+numDimsPerGroupCands = [4 1 2]';
+
+numdCands = numel(numDimsPerGroupCands);
+
+% Initialize (d,M) pairs that passed to bayesOptDecideAddGP
+decomp = cell(numdCands-1,1);
+for i = 1:numdCands-1
+  decomp{i}.d = numDimsPerGroupCands(i+1);
+  decomp{i}.M = floor(numDims / decomp{i}.d);
+end
 
 % Get the function
 [func, funcProperties] = getAdditiveFunction(numDims, trueNumDimsPerGroup);
@@ -55,44 +75,38 @@ boParams.fixSm = false;
 boParams.sigmaPrRange = [0.03 30] * stdFth;
 boParams.useFixedBandwidth = false;
 
+
+totalNumQueries = numIters + boParams.numInitPts
+
+
 % From here on customize each parameters separately.
-% Known Decomposition
+% Initialize optimization parameters
 boKDParams = boParams;
 boKDParams.decompStrategy = 'known';
 boKDParams.diRectParams.maxevals = ceil(numDiRectEvals/trueNumGroups);
 boKDParams.diRectParams.maxits = inf;
 
-% Known grouping but not decomposition
+boAddParams = boParams;
+boAddParams.decompStrategy = 'partialLearn';
+
 boUDParams = boKDParams;
 boUDParams.decompStrategy = 'decide';
 
-decomp = cell(4,1);
-decomp{1}.d=1;
-decomp{1}.M=10;
-
-decomp{2}.d=2;
-decomp{2}.M=5;
-
-decomp{3}.d=5;
-decomp{3}.M=2;
-
-decomp{4}.d=10;
-decomp{4}.M=1;
-
-
-totalNumQueries = numIters + boParams.numInitPts;
-
 % Initialize arrays for storing the history
 boKDHistories = zeros(numExperiments, totalNumQueries);
+boAddHistories = zeros(numExperiments, totalNumQueries, numdCands);
 boUDHistories = zeros(numExperiments, totalNumQueries);
 
 % For storing simple regret values
 boKDSimpleRegrets = zeros(numExperiments, totalNumQueries);
+boAddSimpleRegrets = zeros(numExperiments, totalNumQueries, numdCands);
 boUDSimpleRegrets = zeros(numExperiments, totalNumQueries);
 
 % For storing cumulative regret values
 boKDCumRegrets = zeros(numExperiments, totalNumQueries);
+boAddCumRegrets = zeros(numExperiments, totalNumQueries, numdCands);
 boUDCumRegrets = zeros(numExperiments, totalNumQueries);
+
 
 for expIter = 1:numExperiments
 
@@ -113,27 +127,53 @@ for expIter = 1:numExperiments
   boKDSimpleRegrets(expIter, :) = sR';
   boKDCumRegrets(expIter, :) = cR';
 
-  % Learn the decomposition 
-  fprintf('\nLearn Decomposition\n');
-  [~, ~, ~, valHistAdd] = ...
+  % Learn Decomposition
+  fprintf('\nKnown Grouping Unknown Decomposition\n');
+
+  % For the candidates in numDimsPerGroupCands
+  for candIter = 1:numdCands
+    fprintf('\nUsing an arbitrary %d/ %d decomposition\n', ...
+      numDimsPerGroupCands(candIter), numDims );
+
+    [decompAdd, boAddParamsCurr, numCurrGroups] = ...
+      getDecompForParams(numDims, numDimsPerGroupCands(candIter), ...
+                  boAddParams, true);
+    
+    boAddParamsCurr.diRectParams.maxevals = ceil(0.9 * numDiRectEvals/numCurrGroups);
+    
+    [~, ~, ~, valHistAdd] = ...
+      bayesOptDecompAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
+    
+    fprintf('In additive model, size of valHistAdd %d\n', numel(valHistAdd));
+
+    [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
+    boAddHistories(expIter, :, candIter) = valHistAdd';
+    boAddSimpleRegrets(expIter, :, candIter) = sR';
+    boAddCumRegrets(expIter, :, candIter) = cR';
+ 
+  end
+
+  
+  % Decomposition varies across iterations
+  fprintf('\nDecomposition varies across iterations\n');
+
+  [~, ~, ~, valHistDecide] = ...
       bayesOptDecideAddGP(func, decomp, bounds, numIters, boUDParams); 
   
-  [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
+  [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
   
-  % TODO: dimensions dis-match bug:
-  size(valHistAdd');
+  size(valHistDecide);
   size(boUDHistories);
-
- % boUDHistories(expIter, :) = valHistAdd';
- % boUDSimpleRegrets(expIter, :) = sR';
- % boUDCumRegrets(expIter, :) = cR';
+  boUDHistories(expIter, :) = valHistDecide';
+  boUDSimpleRegrets(expIter, :) = sR';
+  boUDCumRegrets(expIter, :) = cR';
 
   % Save Results at each iteration
-%   save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
-%    'funcProperties', 'trueMaxVal',  ...
-%    'numIters', 'totalNumQueries', ...
-%    'boKDHistories', 'boUDHistories', ...
-%    'boKDSimpleRegrets', 'boUDSimpleRegrets', ...
-%    'boKDCumRegrets', 'boUDCumRegrets');
+  save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
+    'funcProperties', 'trueMaxVal',  ...
+    'numIters', 'totalNumQueries', ...
+    'boKDHistories', 'boAddHistories', 'boUDHistories', ...
+    'boKDSimpleRegrets', 'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
+    'boKDCumRegrets', 'boAddCumRegrets', 'boUDCumRegrets');
 
 end
