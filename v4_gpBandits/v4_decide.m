@@ -13,26 +13,26 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
-%numExperiments = 2;
-%numDims = 40;
-%
-%numDiRectEvals = 500;
-%trueNumDimsPerGroup = 8;
-%numIters = 400;
-%
-%numDimsPerGroupCands = [40 4 8 10 16]';
+numExperiments = 2;
+numDims = 40;
+
+numDiRectEvals = 500;
+trueNumDimsPerGroup = 8;
+numIters = 400;
+
+numDimsPerGroupCands = [40 4 8 10 16]';
 
 % tiny experiments 
-numExperiments = 1;
-numDims = 4;
+%numExperiments = 1;
+%numDims = 4;
+%
+%numDiRectEvals = 5;
+%trueNumDimsPerGroup = 2;
+%numIters = 12;
+%
+%numDimsPerGroupCands = [4 1 2]';
 
-numDiRectEvals = 5;
-trueNumDimsPerGroup = 2;
-numIters = 12;
-
-numDimsPerGroupCands = [4 1 2]';
-
-numdCands = numel(numDimsPerGroupCands);
+numdCand = numel(numDimsPerGroupCands);
 
 % Initialize (d,M) pairs that passed to bayesOptDecideAddGP
 decomp = cell(numdCands-1,1);
@@ -174,6 +174,7 @@ for expIter = 1:numExperiments
     'numIters', 'totalNumQueries', ...
     'boKDHistories', 'boAddHistories', 'boUDHistories', ...
     'boKDSimpleRegrets', 'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
-    'boKDCumRegrets', 'boAddCumRegrets', 'boUDCumRegrets');
+    'boKDCumRegrets', 'boAddCumRegrets', 'boUDCumRegrets', ...
+    'numDimsPerGroupCands');
 
 end
