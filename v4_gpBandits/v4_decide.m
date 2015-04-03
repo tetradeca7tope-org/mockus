@@ -13,24 +13,23 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
+% IMPORTANT ASSUMPTION: size(numDimsPerGroupCands)-1 divides numIters
 
 % non-trivial experiment
-%numExperiments = 2;
-%numDims = 40;
-%numDiRectEvals = 500;
-%trueNumDimsPerGroup = 8;
-%numIters = 400;
-%numDimsPerGroupCands = [40 4 8 10 16]';
+numExperiments = 2;
+numDims = 40;
+numDiRectEvals = 500;
+trueNumDimsPerGroup = 8;
+numIters = 300;
+numDimsPerGroupCands = [40 4 8 10 16 18]';
 
 % tiny experiments 
-numExperiments = 1;
-numDims = 10;
-
-numDiRectEvals = 50;
-trueNumDimsPerGroup = 5;
-numIters = 24;
-% IMPORTANT ASSUMPTION: size(numDimsPerGroupCands)-1 divides numIters
-numDimsPerGroupCands = [4 1 2 5]';
+%numExperiments = 1;
+%numDims = 20;
+%numDiRectEvals = 5;
+%trueNumDimsPerGroup = 4;
+%numIters = 20;
+%numDimsPerGroupCands = [20 1 2 4 5 10]';
 
 numdCands = numel(numDimsPerGroupCands);
 
@@ -161,10 +160,10 @@ for expIter = 1:numExperiments
 
   
   % Decomposition varies across iterations
-  fprintf('\nDecomposition varies across iterations\n');
+  fprintf('\nChoose the decomposition at each iteration\n');
 
   [~, ~, ~, valHistDecide] = ...
-      bayesOptDecideAddGP(func, decomp, bounds, numIters, boUDParams); 
+      bayesOptDecideAddGP(func, decomp, bounds, numIters, boUDParams, numDims); 
   
   [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
   
