@@ -13,26 +13,26 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
-numExperiments = 2;
-numDims = 40;
 
-numDiRectEvals = 500;
-trueNumDimsPerGroup = 8;
-numIters = 400;
-
-numDimsPerGroupCands = [40 4 8 10 16]';
+% non-trivial experiment
+%numExperiments = 2;
+%numDims = 40;
+%numDiRectEvals = 500;
+%trueNumDimsPerGroup = 8;
+%numIters = 400;
+%numDimsPerGroupCands = [40 4 8 10 16]';
 
 % tiny experiments 
-%numExperiments = 1;
-%numDims = 4;
-%
-%numDiRectEvals = 5;
-%trueNumDimsPerGroup = 2;
-%numIters = 12;
-%
-%numDimsPerGroupCands = [4 1 2]';
+numExperiments = 1;
+numDims = 10;
 
-numdCand = numel(numDimsPerGroupCands);
+numDiRectEvals = 50;
+trueNumDimsPerGroup = 5;
+numIters = 24;
+% IMPORTANT ASSUMPTION: size(numDimsPerGroupCands)-1 divides numIters
+numDimsPerGroupCands = [4 1 2 5]';
+
+numdCands = numel(numDimsPerGroupCands);
 
 % Initialize (d,M) pairs that passed to bayesOptDecideAddGP
 decomp = cell(numdCands-1,1);
@@ -51,7 +51,7 @@ trueNumGroups = numel(trueDecomp);
 
 % Ancillary stuff
 resultsDir = 'results/';
-saveFileName = sprintf('%s-toyExp-%d-%d-%s.mat', resultsDir, numDims, ...
+saveFileName = sprintf('%stoyExp-%d-%d-%s.mat', resultsDir, numDims, ...
   trueNumDimsPerGroup, datestr(now,'ddmm-hhMMss') );
 
 % Compute some statistics to help with the initialization
@@ -59,11 +59,17 @@ th = rand(1000, numDims); fth = func(th);
 meanFth = mean(fth);
 stdFth = std(fth);
 
+
+
+
 % Parameters for additive Bayesian optimization
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
 boParams.numInitPts = 10; 
+% use the same initialization points
+boParams.initPts = rand(boParams.numInitPts, numDims);
+boParams.initVals = func(boParams.initPts);
 boParams.commonNoise = 0.01 * stdFth;
 boParams.utilityFunc = 'UCB';
 boParams.meanFuncs = [];
