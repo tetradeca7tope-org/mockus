@@ -1,4 +1,4 @@
-function [maxVal, maxPt, boQs, boVals, history] = ...
+function [maxVal, maxPt, boQs, boVals, chosen, history] = ...
 bayesOptDecideAddGP(oracle, decomp, bounds, numIters, params, numDims)
 
 % decomp is a cell array, each cell is a struct with the following 
@@ -24,8 +24,13 @@ else
   
   boQs = [];
   boVals = [];
-
+  
+  % Initialize array that saves chosen (d,M) at each stage
+  chosen = nan(numOutIters,2);
+  
   for cout = 1:numOutIters
+    chosen(cout,:) = [decompNext.d; decompNext.M];
+    
     params.decompStrategy = 'decide';
     [maxVal, maxPt, thisBoQs, thisBoVals, thisHistory, gpHyperParams]=...
       bayesOptDecompAddGP(oracle, decompNext, bounds, numInnerIters, params);
@@ -54,14 +59,15 @@ else
        addGPDecompMargLikelihood(boQs, boVals, dummyPts, testDecomp, gpHyperParams);
       
     
-      if mll < currBestMll
-        % fprintf('Actually picking\n');
+      if mll < currBestMll 
         currBestMll = mll;
         currBestDecompIdx = i;
       end
     end
-
-    decompNext = decomp{currBestDecompIdx};
+    
+    decompNext = decomp{currBestDecompIdx}; 
+    fprintf('\nChoose (d,M) = (%d,%d)\n', decompNext.d, decompNext.M);
+    
     params.initPts = boQs;
     params.initVals = boVals;
   end
