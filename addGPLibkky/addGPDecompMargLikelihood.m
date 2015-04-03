@@ -1,5 +1,5 @@
 function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
-  sigmaSmOpts, sigmaPrOpts, A, learnedDecomp] = ...
+  sigmaSmOpts, sigmaPrOpts, A, learnedDecomp, mll] = ...
   addGPRotDecompLikelihood(X, y, Xtest, decomp, hyperParams)
 % This function attempts to find the best Kernel hyper parameters to fit an
 % additive function. The kernel parameters include the smoothness and scale
@@ -24,6 +24,7 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   DECOMP_LEARN = 'learn';
   DECOMP_RAND = 'random';
   DECOMP_PLEARN = 'partialLearn';
+  DECOMP_DECIDE = 'decide';
 
   % prelims
   D = size(X, 2);
@@ -127,6 +128,8 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
       A = decompOptPartial(negMLF, D, d, M);
     elseif strcmp(hyperParams.decompStrategy, DECOMP_LEARN)
       A = decompOptBrute(negMLF, D, d, M);
+    elseif strcmp(hyperParams.decompStrategy, DECOMP_DECIDE) 
+      [A, mll] = decompOptPartialMll(negMLF, D, d, M);
     else
       error('Unknown Strategy to handle decomposition\n');
     end 

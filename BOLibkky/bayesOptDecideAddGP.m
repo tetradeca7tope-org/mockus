@@ -1,8 +1,8 @@
-function [maxVal, maxPt, boQueries, boVals, history] = ...
-bayesOptDecideAddGP(oracle, decomp, bounds, numIters, params)
+function [maxVal, maxPt, boQs, boVals, history] = ...
+bayesOptDecideAddGP(oracle, decomp, bounds, numIters, params, numDims)
 
 % decomp is a cell array, each cell is a struct with the following 
-% fields: d, M, group, score. 
+% fields: d, M. 
 
 DECOMP_KNOWN = 'known';
 DECOMP_LEARN = 'learn';
@@ -15,36 +15,57 @@ if ~strcmp(params.decompStrategy, DECOMP_DECIDE)
   bayesOptDecompAddGP(oracle, decomp, bounds, numIters, params);
 
 else
-  boQueries = [];
-  boVals = [];
-  history = [];
-
   numDecompChoices = numel(decomp);
-  numInnerIters = floor(numIters / numDecompChoices);
+  numOutIters = numDecompChoices;
+  numInnerIters = floor(numIters / numOutIters);
+  
+  decompNext.d = decomp{1}.d;
+  decompNext.M = decomp{1}.M;
+  
+  boQs = [];
+  boVals = [];
 
-  for i=1:numDecompChoices
-    thisDecomp.d = decomp{i}.d;
-    thisDecomp.M = decomp{i}.M;
-    params.decompStrategy = DECOMP_PLEARN;
-
-    [maxVal, maxPt, thisBoQueries, thisBoVals, thisHistory]=...
-    bayesOptDecompAddGP(oracle, thisDecomp, bounds, numInnerIters, params);
-   
-    size(thisBoQueries);
-    size(thisBoVals);
-    if (i==1)
-      boQueries = [boQueries;thisBoQueries];
-      boVals = [boVals;thisBoVals];
-    else 
-      histLen = numel(thisBoVals);
-      boQueries = [boQueries;thisBoQueries(histLen-numInnerIters+1:end,:)];
-      boVals = [boVals;thisBoVals(histLen-numInnerIters+1:end)];
+  for cout = 1:numOutIters
+    params.decompStrategy = 'decide';
+    [maxVal, maxPt, thisBoQs, thisBoVals, thisHistory, gpHyperParams]=...
+      bayesOptDecompAddGP(oracle, decompNext, bounds, numInnerIters, params);
+    
+    if (cout == 1)
+      boQs = [boQs; thisBoQs];
+      boVals = [boVals; thisBoVals];
+    else
+      len = numel(thisBoVals);
+      boQs = [boQs; thisBoQs(len-numInnerIters+1:end,:)];
+      boVals = [boVals; thisBoVals(len-numInnerIters+1:end)]; 
     end
 
-    params.initPts = boQueries;
-    params.initVals = boVals; 
+    dummyPts = zeros(0,numDims);
+
+    currBestMll = inf;
+    currBestDecompIdx = -1;
+
+    for i=1:numDecompChoices
+      testDecomp = decomp{i};
+      numGroups = testDecomp.M;
+
+      % gpHyperParams.sigmaSmRanges
+      
+       [~, ~, ~, ~, ~, ~, ~, ~, ~, ~, learnedDecomp, mll] = ...
+       addGPDecompMargLikelihood(boQs, boVals, dummyPts, testDecomp, gpHyperParams);
+      
+    
+      if mll < currBestMll
+        % fprintf('Actually picking\n');
+        currBestMll = mll;
+        currBestDecompIdx = i;
+      end
+    end
+
+    decompNext = decomp{currBestDecompIdx};
+    params.initPts = boQs;
+    params.initVals = boVals;
   end
-  
-  size(boVals);
+
 end
+
 end

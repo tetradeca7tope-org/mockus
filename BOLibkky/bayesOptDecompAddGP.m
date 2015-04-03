@@ -1,4 +1,4 @@
-function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
+function [maxVal, maxPt, boQueries, boVals, history, gpHyperParams] = bayesOptDecompAddGP(...
   oracle, decomp, bounds, numIters, params)
 % The same as bayesOptADDGP except that now the decomposition may not be known.
 % params should have a field called decompStrategy: It should be one of 
@@ -129,6 +129,7 @@ function [maxVal, maxPt, boQueries, boVals, history] = bayesOptDecompAddGP(...
 
   % Define the following before proceeding
   boQueries = [initPts; zeros(numIters, numDims)];
+  initVals;
   boVals = [initVals; zeros(numIters, 1)];
   history = [max(initVals(cumsum(triu(ones(length(initVals))))))'; ...
              zeros(numIters, 1)];
