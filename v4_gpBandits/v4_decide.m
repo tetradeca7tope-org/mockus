@@ -162,7 +162,7 @@ for expIter = 1:numExperiments
   % Decomposition varies across iterations
   fprintf('\nChoose the decomposition at each iteration\n');
 
-  [~, ~, ~, valHistDecide] = ...
+  [~, ~, ~, valHistDecide, chosen] = ...
       bayesOptDecideAddGP(func, decomp, bounds, numIters, boUDParams, numDims); 
   
   [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
@@ -180,6 +180,6 @@ for expIter = 1:numExperiments
     'boKDHistories', 'boAddHistories', 'boUDHistories', ...
     'boKDSimpleRegrets', 'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
     'boKDCumRegrets', 'boAddCumRegrets', 'boUDCumRegrets', ...
-    'numDimsPerGroupCands');
+    'numDimsPerGroupCands', 'chosen');
 
 end
