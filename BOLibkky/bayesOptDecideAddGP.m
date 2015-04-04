@@ -26,11 +26,12 @@ else
   boVals = [];
   
   % Initialize array that saves chosen (d,M) at each stage
-  chosen = nan(numOutIters,2);
+  chosen = nan(numOutIters,3);
   
   for cout = 1:numOutIters
-    chosen(cout,:) = [decompNext.d; decompNext.M];
     
+    fprintf('\nOuter iteration:%d\n', cout);
+
     params.decompStrategy = 'decide';
     [maxVal, maxPt, thisBoQs, thisBoVals, thisHistory, gpHyperParams]=...
       bayesOptDecompAddGP(oracle, decompNext, bounds, numInnerIters, params);
@@ -58,7 +59,8 @@ else
        [~, ~, ~, ~, ~, ~, ~, ~, ~, ~, learnedDecomp, mll] = ...
        addGPDecompMargLikelihood(boQs, boVals, dummyPts, testDecomp, gpHyperParams);
       
-    
+      fprintf('negative mll is %d\n', mll);
+
       if mll < currBestMll 
         currBestMll = mll;
         currBestDecompIdx = i;
@@ -66,8 +68,10 @@ else
     end
     
     decompNext = decomp{currBestDecompIdx}; 
-    fprintf('\nChoose (d,M) = (%d,%d)\n', decompNext.d, decompNext.M);
-    
+    fprintf('Choose (d,M) = (%d,%d)\n', decompNext.d, decompNext.M);
+   
+    chosen(cout,:) = [decompNext.d; decompNext.M; currBestMll];
+
     params.initPts = boQs;
     params.initVals = boVals;
   end
