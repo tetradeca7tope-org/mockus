@@ -17,19 +17,19 @@ warning off;
 
 % non-trivial experiment
 numExperiments = 2;
-numDims = 40;
-numDiRectEvals = 500;
-trueNumDimsPerGroup = 8;
-numIters = 300;
-numDimsPerGroupCands = [40 4 8 10 16 18]';
+%numDims = 40;
+%numDiRectEvals = 500;
+%trueNumDimsPerGroup = 8;
+%numIters = 300;
+%numDimsPerGroupCands = [40 4 8 10 16 18]';
 
 % tiny experiments 
-%numExperiments = 1;
-%numDims = 20;
-%numDiRectEvals = 5;
-%trueNumDimsPerGroup = 4;
-%numIters = 20;
-%numDimsPerGroupCands = [20 1 2 4 5 10]';
+numExperiments = 1;
+numDims = 30;
+numDiRectEvals = 100;
+trueNumDimsPerGroup = 12;
+numIters = 60;
+numDimsPerGroupCands = [30 2 4 8 12 15]';
 
 numdCands = numel(numDimsPerGroupCands);
 
