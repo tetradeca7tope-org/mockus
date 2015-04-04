@@ -71,11 +71,11 @@ function [mu, KPost, Mus, KPosts, combinedXFuncH, combinedZFuncH, funcHs, ...
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Common Mean Function 
   % -----------------------------------------
-  if isempty(hyperParams.commonMeanFunc)
+  %if isempty(hyperParams.commonMeanFunc)
     commonMeanFunc = @(arg) mean(y) * ones(size(arg,1), 1);
-  else
-    commonMeanFunc = hyperParams.commonMeanFunc;
-  end
+  %else
+  %  commonMeanFunc = hyperParams.commonMeanFunc;
+  %end
   % Common Noise parameter
   % -------------------------------------
     commonNoise = hyperParams.commonNoise;
