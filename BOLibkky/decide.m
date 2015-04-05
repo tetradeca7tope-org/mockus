@@ -26,6 +26,9 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
   dummyPts = zeros(0, numDims); % to build the GPs
   MAX_THRESHOLD_EXCEEDS = 5;
   NUM_ITERS_PER_PARAM_RELEARN = 25;
+  
+  % Later used to help store tuning results
+  iterHyperTune = 0;
 
   % The Decomposition
   % -----------------------------------------------------
@@ -166,7 +169,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
     currBoQueries = boQueries(1:numBoPts, :);
     currBoVals = boVals(1:numBoPts);
     
-    iterHyperTune = 0;
+    
     % First redefine ranges for the GP bandwidth if needed
     if ~params.useFixedBandWidth & ...
        ( mod(boIter-1, NUM_ITERS_PER_PARAM_RELEARN) == 0 | ...
@@ -218,8 +221,9 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
           mllHolder(i) = mll;
         end
         
-        [maxMll, Idx] = min(mllHolder);
-        fprintf('Min Negative Likelihood is %d, idx = %d\n', maxMll, Idx);
+        [minNegMll, Idx] = min(mllHolder);
+        fprintf('Min Negative Likelihood is %d, idx = %d\n', minNegMll, Idx);
+        % mllHolder
 
         alCurrBWs = alCurrBWsHolder{Idx};
         alCurrScales = alCurrScalesHolder{Idx};
@@ -228,7 +232,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
         % IMPORTANT: update numGroups
         numGroups = numel(learnedDecomp);
         
-        % Store the info 
+        % Store the info  
         dMHist{iterHyperTune} = numGroups;
         
         fprintf('numGroups is now: %d\n', numGroups);
