@@ -1,16 +1,16 @@
 function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
   oracle, decomp, bounds, numIters, params)
-  % If decompStrat is decide, decomp is a cell array of struct that contains 
+  % If decompStrat is decide, decomp is a cell array of struct that contains
   % (d,M) pairs
-  
+
 % The same as bayesOptADDGP except that now the decomposition may not be known.
-% params should have a field called decompStrategy: It should be one of 
-% 'known', 'learn', 'random' and 'partialLearn'. 
+% params should have a field called decompStrategy: It should be one of
+% 'known', 'learn', 'random' and 'partialLearn'.
 % 'known': The decomposition is known and given in decomp. We will optimize
 % according to this.
 % For the other 3 cases, decomp should have two parameters d & M.
 % 'learn': The decomposition is unknown and should be learned.
-% 'random': Randomly pick a partition at each iteration. 
+% 'random': Randomly pick a partition at each iteration.
 % 'partialLearn': Partially learn the decomposition at each iteration by trying
 %   out a few and picking the best.
 
@@ -26,14 +26,14 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
   dummyPts = zeros(0, numDims); % to build the GPs
   MAX_THRESHOLD_EXCEEDS = 5;
   NUM_ITERS_PER_PARAM_RELEARN = 25;
-  
+
   % Later used to help store tuning results
   iterHyperTune = 0;
 
   % The Decomposition
   % -----------------------------------------------------
   gpHyperParams.decompStrategy = params.decompStrategy;
-    if strcmp(params.decompStrategy, DECOMP_KNOWN) 
+    if strcmp(params.decompStrategy, DECOMP_KNOWN)
       decomposition = decomp;
       numGroups = numel(decomposition);
       % Do some diagnostics on the decomposition and print them out
@@ -52,13 +52,13 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
       else
         numGroups = numel(decomp);
       end
-    
+
     else
       % If decide, start with the first (d,M) option
       numGroups = decomp{1}.M;
       numdMCands = numel(decomp);
     end
-      
+
 
   % If Init Points are not given, initialize
   if ~isfield(params, 'initPts') | isempty(params.initPts)
@@ -93,7 +93,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
     if ~isfield(params, 'meanFuncs') | isempty(params.meanFuncs)
       gpHyperParams.meanFuncs = @(arg) zeros( size(arg, 1), 1);
     else
-      gpHyperParams.meanFuncs = params.meanFuncs; 
+      gpHyperParams.meanFuncs = params.meanFuncs;
       % if only one is given, they will be dealt to all GPs in
       % addGPMargLikelihood.
     end
@@ -109,7 +109,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
     if ~isfield(params, 'noises') | isempty(params.noises)
       gpHyperParams.noises = 0;
     else
-      gpHyperParams.noises = params.noises; 
+      gpHyperParams.noises = params.noises;
     end
   % The Scale Parameters
   % -----------------------------------------------------
@@ -124,7 +124,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
     else
       gpHyperParams.sigmaPrRanges = params.sigmaPrRanges;
     end
-  % The Bandwidth 
+  % The Bandwidth
   % -----------------------------------------------------
     gpHyperParams.useSameSm = params.useSameSm;
     if params.useFixedBandWidth
@@ -155,7 +155,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
     [currMaxVal, maxIdx] = max(initVals);
     currMaxPt = initPts(maxIdx, :);
   end
-  
+
   fprintf('Peforming BO (dim = %d)\n', numDims);
   for boIter = 1:numIters
 
@@ -168,13 +168,13 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
     numBoPts = numInitPts + boIter - 1;
     currBoQueries = boQueries(1:numBoPts, :);
     currBoVals = boVals(1:numBoPts);
-    
-    
+
+
     % First redefine ranges for the GP bandwidth if needed
     if ~params.useFixedBandWidth & ...
        ( mod(boIter-1, NUM_ITERS_PER_PARAM_RELEARN) == 0 | ...
          threshExceededCounter == MAX_THRESHOLD_EXCEEDS )
-      
+
       iterHyperTune = iterHyperTune + 1;
 
       if threshExceededCounter == MAX_THRESHOLD_EXCEEDS
@@ -186,7 +186,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
 %         alBWUB = max(alBWLB, 0.9 * alBWUB);
       end
 
-      % Define the BW range for addGPMargLikelihood      
+      % Define the BW range for addGPMargLikelihood
       if alBWUB == alBWLB
         gpHyperParams.fixSm = true;
         gpHyperParams.sigmaSmRanges = alBWLB * ones(numGroups, 1);
@@ -200,7 +200,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
 
       % Obtain the optimal GP parameters
       % Two cases here
-      if ~strcmp(params.decompStrategy, DECOMP_DECIDE) 
+      if ~strcmp(params.decompStrategy, DECOMP_DECIDE)
         [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp] = ...
           addGPDecompMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
             decomp, gpHyperParams );
@@ -220,10 +220,16 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
           learnedDecompHolder{i} = learnedDecomp;
           mllHolder(i) = mll;
         end
-        
-        [minNegMll, Idx] = min(mllHolder);
-        fprintf('Min Negative Likelihood is %d, idx = %d\n', minNegMll, Idx);
+
+        % [minNegMll, Idx] = min(mllHolder);
+          Idx = mod(iterHyperTune, numdMCands) + 1;
+          negMll = mllHolder(Idx);
+          fprintf('Pick pairs like round-roubin, mll = %d, idx = %d\n', negMll, Idx);
+        % fprintf('Min Negative Likelihood is %d, idx = %d\n', minNegMll, Idx);
         % mllHolder
+
+
+
 
         alCurrBWs = alCurrBWsHolder{Idx};
         alCurrScales = alCurrScalesHolder{Idx};
@@ -231,16 +237,16 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
 
         % IMPORTANT: update numGroups
         numGroups = numel(learnedDecomp);
-        
-        % Store the info  
+
+        % Store the info
         dMHist{iterHyperTune} = numGroups;
-        
+
         fprintf('numGroups is now: %d\n', numGroups);
 
     end   %%% end of hyper-param tuning
 
     % if ~params.useFixedBandWidth ...
-    
+
     alCurrBW = alCurrBWs(1); %TODO: modify to allow different bandwidths
         if numDims < 24
           learnedDecompStr = '';
@@ -271,7 +277,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
       learnedDecomp, currBoVals, bounds);
     % If it is too close, perturb it a bit
     if min( sqrt( sum( bsxfun(@minus, currBoQueries, nextPt).^2, 2) ))/...
-          alCurrBW< 1e-10 
+          alCurrBW< 1e-10
       while min( sqrt( sum( bsxfun(@minus, currBoQueries, nextPt).^2,2)))/...
                  alCurrBW < 1e-10
         nextPt = projectToRectangle( ...
@@ -315,7 +321,7 @@ function [nextPt, nextPtMean, nextPtStd, nextPtUtil] = ...
 
   % So here's the plan here. We will define a utility function over each GP and
   % pick the point that maximizes this utility function
-  
+
   numGroups = numel(decomposition);
   numDims = size(bounds, 1);
 
@@ -323,13 +329,13 @@ function [nextPt, nextPtMean, nextPtStd, nextPtUtil] = ...
   nextPtUtils = zeros(numGroups, 1);
 
   for k = 1:numGroups
-    
+
     coords = decomposition{k};
     currBounds = bounds(coords, :);
     currGPFuncH = funcHs{k};
 
     if strcmp(params.utilityFunc, 'UCB')
-      utility = @(t) getUCBUtility(t, currGPFuncH, size(boVals, 1)); 
+      utility = @(t) getUCBUtility(t, currGPFuncH, size(boVals, 1));
     else
       utility = @(t) params.utilityFunc(t, currGPFuncH);
     end
