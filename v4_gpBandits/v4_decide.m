@@ -15,29 +15,14 @@ warning off;
 % Problem parameters
 
 % non-trivial experiment
-numExperiments = 1;
+numExperiments = 5;
 numDims = 40;
-numDiRectEvals = 200;
+numDiRectEvals = 500;
 trueNumDimsPerGroup = 12;
-numIters = 200;
-numDimsPerGroupCands = [8 2 5 10 15 20 40]';
-
-% tiny experiments 
-%numExperiments = 1;
-%numDims = 30;
-%numDiRectEvals = 10;
-%trueNumDimsPerGroup = 3;
-%numIters = 10;
-%numDimsPerGroupCands = [30 2 4]';
+numIters = 300;
+numDimsPerGroupCands = [2 5 8 12 16 20 40]';
 
 numdCands = numel(numDimsPerGroupCands);
-
-% Initialize (d,M) pairs that passed to bayesOptDecideAddGP
-decomp = cell(numdCands,1);
-for i = 1:numdCands
-  decomp{i}.d = numDimsPerGroupCands(i);
-  decomp{i}.M = floor(numDims / decomp{i}.d);
-end
 
 % Get the function
 [func, funcProperties] = getAdditiveFunction(numDims, trueNumDimsPerGroup);
@@ -114,25 +99,25 @@ boUDCumRegrets = zeros(numExperiments, totalNumQueries);
 
 for expIter = 1:numExperiments
 
-%  fprintf('\n==============================================================\n');
-%  fprintf('Experiment %d/ %d\nMaxVal: %0.4f\n', ...
-%    expIter, numExperiments, trueMaxVal);
-%  fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
-%  fprintf('==============================================================\n');
-%
-%  % Known true decomposition
-%  fprintf('\nKnown Decomposition\n');
-%  boKDParams.noises = 0 * ones(trueNumGroups, 1);
-%  [~, ~, ~, valHistKD] = ...
-%    bayesOptDecompAddGP(func, trueDecomp, bounds, numIters, boKDParams);
-%  [sR, cR] = getRegrets(trueMaxVal, valHistKD);
-%
-%  boKDHistories(expIter, :) = valHistKD';
-%  boKDSimpleRegrets(expIter, :) = sR';
-%  boKDCumRegrets(expIter, :) = cR';
-%
-%  % Learn Decomposition
-%  fprintf('\nKnown Grouping Unknown Decomposition\n');
+  fprintf('\n==============================================================\n');
+  fprintf('Experiment %d/ %d\nMaxVal: %0.4f\n', ...
+    expIter, numExperiments, trueMaxVal);
+  fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
+  fprintf('==============================================================\n');
+
+  % Known true decomposition
+  fprintf('\nKnown Decomposition\n');
+  boKDParams.noises = 0 * ones(trueNumGroups, 1);
+  [~, ~, ~, valHistKD] = ...
+    bayesOptDecompAddGP(func, trueDecomp, bounds, numIters, boKDParams);
+  [sR, cR] = getRegrets(trueMaxVal, valHistKD);
+
+  boKDHistories(expIter, :) = valHistKD';
+  boKDSimpleRegrets(expIter, :) = sR';
+  boKDCumRegrets(expIter, :) = cR';
+
+  % Learn Decomposition
+  fprintf('\nKnown Grouping Unknown Decomposition\n');
 
   % For the candidates in numDimsPerGroupCands
   for candIter = 1:numdCands
@@ -148,8 +133,6 @@ for expIter = 1:numExperiments
     [~, ~, ~, valHistAdd] = ...
       bayesOptDecompAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
     
-    
-
     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
     boAddHistories(expIter, :, candIter) = valHistAdd';
     boAddSimpleRegrets(expIter, :, candIter) = sR';
@@ -160,7 +143,20 @@ for expIter = 1:numExperiments
   
   % Decomposition varies across iterations
   fprintf('\nChoose the decomposition at each iteration\n');
+  
+  % Initialize (d,M) pairs that passed to bayesOptDecideAddGP
+  decomp = cell(numdCands,1);
+  for i = 1:numdCands
+    decomp{i}.d = numDimsPerGroupCands(i);
+    decomp{i}.M = floor(numDims / decomp{i}.d);
+  end
 
+  % How to choose (d,M) pairs
+  % boUDParams.choosedM = 'maxMll';
+  % boUDParams.choosedM = 'inOrder';
+  % boUDParams.choosedM = 'normalize';
+  
+  
   [~, ~, ~, valHistDecide,~, dMHist] = ...
       decide(func, decomp, bounds, numIters, boUDParams); 
   
