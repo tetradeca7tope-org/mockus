@@ -266,7 +266,8 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
         % Store the info
         dMHist{iterHyperTune} = numGroups;
 
-        fprintf('\nM = %d\n', numGroups);
+        fprintf('---------------------------------\n');
+        fprintf('M = %d\n', numGroups);
 
     end   %%% end of hyper-param tuning
 
