@@ -20,6 +20,9 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
   DECOMP_RAND = 'random';
   DECOMP_PLEARN = 'partialLearn';
   DECOMP_DECIDE = 'decide';
+  CHOOSEdM_MLL = 'maxMll';
+  CHOOSEdM_ORDER = 'inOrder';
+  CHOOSEdM_NORM = 'normalize';
 
   % Prelims
   numDims = size(bounds, 1);
@@ -211,6 +214,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
         alCurrScalesHolder = cell(numdMCands,1);
         learnedDecompHolder = cell(numdMCands,1);
         mllHolder = nan(numdMCands,1);
+
         for i=1:numdMCands
           [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp, mll] = ...
             addGPDecompMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
@@ -221,15 +225,36 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
           mllHolder(i) = mll;
         end
 
-        % [minNegMll, Idx] = min(mllHolder);
-          Idx = mod(iterHyperTune, numdMCands) + 1;
-          negMll = mllHolder(Idx);
-          fprintf('Pick pairs like round-roubin, mll = %d, idx = %d\n', negMll, Idx);
-        % fprintf('Min Negative Likelihood is %d, idx = %d\n', minNegMll, Idx);
-        % mllHolder
-
-
-
+        % How to choose the next (d,M) pair
+        if isfield(params, 'choosedM')
+         if strcmp(params.choosedM, CHOOSEdM_MLL)
+           % pick the next (d,M) based on marginal likelihood
+           [minNegMll, Idx] = min(mllHolder);
+           mllHolder;
+           fprintf('Min Negative Likelihood is %d\n', minNegMll);
+         
+         elseif strcmp(params.choosedM, CHOOSEdM_ORDER)
+           % pick the next (d,M) in order
+           Idx = mod(iterHyperTune, numdMCands) + 1;
+           negMll = mllHolder(Idx);
+           fprintf('Pick (d,M)-pairs in order, mll = %d\n', negMll);
+         
+         elseif strcmp(params.choosedM, CHOOSEdM_NORM)
+           funcTmp = @(x)(x.d);
+           allds = cellfun(funcTmp,decomp);
+           normMll = mllHolder ./ sqrt(allds);
+           [minNormNegMll, Idx] = min(normMll);
+           normMll;
+           fprintf('Normed Min Negative Likelihood is %d\n', minNormNegMll);
+         
+         else
+           fprintf('Do not specify how to decide, choose randomly\n');
+           Idx = randi([1, numdMCands],1);
+         end
+        else
+          fprintf('Do not specify how to decide, choose randomly\n');
+          Idx = randi([1, numdMCands],1);
+        end
 
         alCurrBWs = alCurrBWsHolder{Idx};
         alCurrScales = alCurrScalesHolder{Idx};
@@ -241,7 +266,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
         % Store the info
         dMHist{iterHyperTune} = numGroups;
 
-        fprintf('numGroups is now: %d\n', numGroups);
+        fprintf('\nM = %d\n', numGroups);
 
     end   %%% end of hyper-param tuning
 
