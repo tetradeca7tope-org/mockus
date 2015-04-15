@@ -12,16 +12,24 @@ addpath ../utils/
 
 warning off;
 
-% Problem parameters
+uTest = true;
 
-% non-trivial experiment
-numExperiments = 5;
-numDims = 40;
+if ~uTest
+% Fixed experiment parameters
+numExperiments = 3;
 numDiRectEvals = 500;
-trueNumDimsPerGroup = 12;
 numIters = 300;
-numDimsPerGroupCands = [2 5 8 12 16 20 40]';
+else
+% Unit text experiment parameters
+numExperiments = 2;
+numDiRectEvals = 5;
+numIters = 30;
+end
 
+% Problem parameters
+numDims = 4;
+trueNumDimsPerGroup = 2;
+numDimsPerGroupCands = [1 2 4]';
 numdCands = numel(numDimsPerGroupCands);
 
 % Get the function
@@ -95,7 +103,7 @@ boUDSimpleRegrets = zeros(numExperiments, totalNumQueries);
 boKDCumRegrets = zeros(numExperiments, totalNumQueries);
 boAddCumRegrets = zeros(numExperiments, totalNumQueries, numdCands);
 boUDCumRegrets = zeros(numExperiments, totalNumQueries);
-
+dMHistAll = []; 
 
 for expIter = 1:numExperiments
 
@@ -155,11 +163,13 @@ for expIter = 1:numExperiments
   % boUDParams.choosedM = 'maxMll';
   % boUDParams.choosedM = 'inOrder';
   % boUDParams.choosedM = 'normalize';
+  boUDParams.choosedM = 'maxVal';
   
-  
+
   [~, ~, ~, valHistDecide,~, dMHist] = ...
       decide(func, decomp, bounds, numIters, boUDParams); 
-  
+  dMHistAll = [dMHistAll; dMHist];
+
   [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
   
   boUDHistories(expIter, :) = valHistDecide';
@@ -173,6 +183,6 @@ for expIter = 1:numExperiments
     'boKDHistories', 'boAddHistories', 'boUDHistories', ...
     'boKDSimpleRegrets', 'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
     'boKDCumRegrets', 'boAddCumRegrets', 'boUDCumRegrets', ...
-    'numDimsPerGroupCands', 'dMHist');
+    'numDimsPerGroupCands', 'dMHistAll');
 
 end
