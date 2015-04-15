@@ -23,6 +23,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
   CHOOSEdM_MLL = 'maxMll';
   CHOOSEdM_ORDER = 'inOrder';
   CHOOSEdM_NORM = 'normalize';
+  CHOOSEdM_VAL = 'maxVal';
 
   % Prelims
   numDims = size(bounds, 1);
@@ -246,8 +247,21 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
            [minNormNegMll, Idx] = min(normMll);
            normMll;
            fprintf('Normed Min Negative Likelihood is %d\n', minNormNegMll);
-         
-         else
+        
+        elseif strcmp(params.choosedM, CHOOSEdM_VAL)
+          fprintf('Current Max Val: %d\n', currMaxVal);
+          % if ( iterHyperTune > numdMCands )
+          %   fprintf('CurrPt Val:%d\n',nextPtVal);          
+          %   if (nextPtVal < 0.8 * currMaxVal) & (Idx > 1)
+          %     Idx = Idx - 1;
+          %   end
+          % else
+          %   % Idx = numdMCands - iterHyperTune + 1;
+          %   Idx = iterHyperTune;
+          % end
+          Idx = 4;
+  
+        else
            fprintf('Do not specify how to decide, choose randomly\n');
            Idx = randi([1, numdMCands],1);
          end
