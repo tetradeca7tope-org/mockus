@@ -1,4 +1,4 @@
-function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
+function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(...
   oracle, decomp, bounds, numIters, params)
   % If decompStrat is decide, decomp is a cell array of struct that contains
   % (d,M) pairs
@@ -26,6 +26,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
   CHOOSEdM_VAL = 'maxVal';
 
   % Prelims
+  ptHolder = [];
   numDims = size(bounds, 1);
   dummyPts = zeros(0, numDims); % to build the GPs
   MAX_THRESHOLD_EXCEEDS = 5;
@@ -315,6 +316,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
     % Now obtain the next point
     [nextPt, ~, nextPtStd] = getNextQueryPt(params, combFuncH, funcHs, ...
       learnedDecomp, currBoVals, bounds);
+      ptHolder = [ptHolder; nextPt];
     % If it is too close, perturb it a bit
     if min( sqrt( sum( bsxfun(@minus, currBoQueries, nextPt).^2, 2) ))/...
           alCurrBW< 1e-10

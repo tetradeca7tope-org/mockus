@@ -27,9 +27,9 @@ numIters = 30;
 end
 
 % Problem parameters
-numDims = 4;
+numDims = 6;
 trueNumDimsPerGroup = 2;
-numDimsPerGroupCands = [1 2 4]';
+numDimsPerGroupCands = [1 2 3 4 5 6]';
 numdCands = numel(numDimsPerGroupCands);
 
 % Get the function
@@ -104,6 +104,7 @@ boKDCumRegrets = zeros(numExperiments, totalNumQueries);
 boAddCumRegrets = zeros(numExperiments, totalNumQueries, numdCands);
 boUDCumRegrets = zeros(numExperiments, totalNumQueries);
 dMHistAll = []; 
+ptAll = [];
 
 for expIter = 1:numExperiments
 
@@ -113,16 +114,16 @@ for expIter = 1:numExperiments
   fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
   fprintf('==============================================================\n');
 
-  % Known true decomposition
-  fprintf('\nKnown Decomposition\n');
-  boKDParams.noises = 0 * ones(trueNumGroups, 1);
-  [~, ~, ~, valHistKD] = ...
-    bayesOptDecompAddGP(func, trueDecomp, bounds, numIters, boKDParams);
-  [sR, cR] = getRegrets(trueMaxVal, valHistKD);
-
-  boKDHistories(expIter, :) = valHistKD';
-  boKDSimpleRegrets(expIter, :) = sR';
-  boKDCumRegrets(expIter, :) = cR';
+%  % Known true decomposition
+%  fprintf('\nKnown Decomposition\n');
+%  boKDParams.noises = 0 * ones(trueNumGroups, 1);
+%  [~, ~, ~, valHistKD] = ...
+%    bayesOptDecompAddGP(func, trueDecomp, bounds, numIters, boKDParams);
+%  [sR, cR] = getRegrets(trueMaxVal, valHistKD);
+%
+%  boKDHistories(expIter, :) = valHistKD';
+%  boKDSimpleRegrets(expIter, :) = sR';
+%  boKDCumRegrets(expIter, :) = cR';
 
   % Learn Decomposition
   fprintf('\nKnown Grouping Unknown Decomposition\n');
@@ -161,14 +162,15 @@ for expIter = 1:numExperiments
 
   % How to choose (d,M) pairs
   % boUDParams.choosedM = 'maxMll';
-  % boUDParams.choosedM = 'inOrder';
+  boUDParams.choosedM = 'inOrder';
   % boUDParams.choosedM = 'normalize';
-  boUDParams.choosedM = 'maxVal';
+  % boUDParams.choosedM = 'maxVal';
   
 
-  [~, ~, ~, valHistDecide,~, dMHist] = ...
+  [~, ~, ~, valHistDecide,~, dMHist, ptHolder] = ...
       decide(func, decomp, bounds, numIters, boUDParams); 
   dMHistAll = [dMHistAll; dMHist];
+  ptAll(expIter,:,:) = ptHolder;
 
   [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
   
@@ -183,6 +185,6 @@ for expIter = 1:numExperiments
     'boKDHistories', 'boAddHistories', 'boUDHistories', ...
     'boKDSimpleRegrets', 'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
     'boKDCumRegrets', 'boAddCumRegrets', 'boUDCumRegrets', ...
-    'numDimsPerGroupCands', 'dMHistAll');
+    'numDimsPerGroupCands', 'dMHistAll','ptHolder');
 
 end
