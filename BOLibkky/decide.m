@@ -249,17 +249,17 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist] = decide(...
            fprintf('Normed Min Negative Likelihood is %d\n', minNormNegMll);
         
         elseif strcmp(params.choosedM, CHOOSEdM_VAL)
+          % favor small d over large d
           fprintf('Current Max Val: %d\n', currMaxVal);
-          % if ( iterHyperTune > numdMCands )
-          %   fprintf('CurrPt Val:%d\n',nextPtVal);          
-          %   if (nextPtVal < 0.8 * currMaxVal) & (Idx > 1)
-          %     Idx = Idx - 1;
-          %   end
-          % else
-          %   % Idx = numdMCands - iterHyperTune + 1;
-          %   Idx = iterHyperTune;
-          % end
-          Idx = 4;
+          if ( iterHyperTune > numdMCands )
+            fprintf('CurrPt Val:%d\n',nextPtVal);          
+            if (nextPtVal < 0.8 * currMaxVal) & (Idx > 1)
+              Idx = Idx - 1;
+            end
+          else 
+            Idx = iterHyperTune;
+          end
+          
   
         else
            fprintf('Do not specify how to decide, choose randomly\n');
