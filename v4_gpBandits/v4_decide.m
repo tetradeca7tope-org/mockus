@@ -12,7 +12,7 @@ addpath ../utils/
 
 warning off;
 
-uTest = true;
+uTest = false;
 
 if ~uTest
 % Fixed experiment parameters
@@ -21,9 +21,9 @@ numDiRectEvals = 500;
 numIters = 300;
 else
 % Unit text experiment parameters
-numExperiments = 1;
+numExperiments = 3;
 numDiRectEvals = 50;
-numIters = 50;
+numIters = 70;
 end
 
 % Problem parameters
@@ -138,7 +138,7 @@ for expIter = 1:numExperiments
   % boUDParams.choosedM = 'inOrder';
   % boUDParams.choosedM = 'normalize';
   % boUDParams.choosedM = 'maxVal';
-  boUDParams.choosedM = 'fixed';
+  % boUDParams.choosedM = 'fixed';
 
   [~, ~, ~, valHistDecide,~, dMHist, ptHolder] = ...
       decide(func, decomp, bounds, numIters, boUDParams); 
@@ -152,12 +152,12 @@ for expIter = 1:numExperiments
   boUDCumRegrets(expIter, :) = cR';
 
  % Save Results at each iteration
-%  save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
-%    'funcProperties', 'trueMaxVal',  ...
-%    'numIters', 'totalNumQueries', ...
-%    'boAddHistories', 'boUDHistories', ...
-%    'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
-%    'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
-%    'numDimsPerGroupCands', 'dMHistAll','ptAll');
+  save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
+    'funcProperties', 'trueMaxVal',  ...
+    'numIters', 'totalNumQueries', ...
+    'boAddHistories', 'boUDHistories', ...
+    'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
+    'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
+    'numDimsPerGroupCands', 'dMHistAll','ptAll');
 
 end
