@@ -27,18 +27,13 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
   CHOOSEdM_VAL = 'maxVal';
   CHOOSEdM_FIXED = 'fixed';
 
-  fprintf('==============================\n');
-  params
-  decomp
-  fprintf('==============================\n');
-
   % Prelims
   ptHolder = [];
   numDims = size(bounds, 1);
   dummyPts = zeros(0, numDims); % to build the GPs
   MAX_THRESHOLD_EXCEEDS = 5;
-  % NUM_ITERS_PER_PARAM_RELEARN = 25;
-  NUM_ITERS_PER_PARAM_RELEARN = 10;
+  NUM_ITERS_PER_PARAM_RELEARN = 25;
+%  NUM_ITERS_PER_PARAM_RELEARN = 10;
 
   % Later used to help store tuning results
   iterHyperTune = 0;
@@ -235,21 +230,13 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
         [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp] = ...
           addGPDecompMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
             decomp, gpHyperParams );
-            fprintf('=========================================\n');
-            learnedDecomp
-            fprintf('=========================================\n');
-
-      else
+      else %%% the decide case
         % Initialize place holder to store all results
         alCurrBWsHolder = cell(numdMCands,1);
         alCurrScalesHolder = cell(numdMCands,1);
         learnedDecompHolder = cell(numdMCands,1);
         mllHolder = nan(numdMCands,1);
-
-        fprintf('============================================\n');
-        gpHyperParams
-        fprintf('============================================\n');
-
+        
         for i=1:numdMCands
           [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp, mll] = ...
             addGPDecompMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
@@ -266,14 +253,13 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
          if strcmp(params.choosedM, CHOOSEdM_MLL)
            % pick the next (d,M) based on marginal likelihood
            [minNegMll, Idx] = min(mllHolder);
-           mllHolder;
-           fprintf('Min Negative Likelihood is %d\n', minNegMll);
+%           fprintf('Min Negative Likelihood is %d\n', minNegMll);
 
          elseif strcmp(params.choosedM, CHOOSEdM_ORDER)
            % pick the next (d,M) in order
            Idx = mod(iterHyperTune, numdMCands) + 1;
            negMll = mllHolder(Idx);
-           fprintf('Pick (d,M)-pairs in order, mll = %d\n', negMll);
+%           fprintf('Pick (d,M)-pairs in order, mll = %d\n', negMll);
 
          elseif strcmp(params.choosedM, CHOOSEdM_NORM)
            funcTmp = @(x)(x.d);
@@ -281,13 +267,13 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
            normMll = mllHolder ./ sqrt(allds);
            [minNormNegMll, Idx] = min(normMll);
            normMll;
-           fprintf('Normed Min Negative Likelihood is %d\n', minNormNegMll);
+%           fprintf('Normed Min Negative Likelihood is %d\n', minNormNegMll);
 
          elseif strcmp(params.choosedM, CHOOSEdM_VAL)
           % favor small d over large d
           fprintf('Current Max Val: %d\n', currMaxVal);
           if ( iterHyperTune > numdMCands )
-            fprintf('CurrPt Val:%d\n',nextPtVal);
+%            fprintf('CurrPt Val:%d\n',nextPtVal);
             if (nextPtVal < 0.8 * currMaxVal) & (Idx > 1)
               Idx = Idx - 1;
             end
@@ -297,11 +283,11 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
          elseif strcmp(params.choosedM, CHOOSEdM_FIXED)
           Idx = round(numdMCands/2);
          else
-          fprintf('Do not specify how to decide, choose randomly\n');
+%          fprintf('Do not specify how to decide, choose randomly\n');
           Idx = randi([1, numdMCands],1);
          end
         else
-          fprintf('Do not specify how to decide, choose randomly\n');
+%          fprintf('Do not specify how to decide, choose randomly\n');
           Idx = randi([1, numdMCands],1);
         end
 
@@ -309,36 +295,26 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
         alCurrScales = alCurrScalesHolder{Idx};
         learnedDecomp = learnedDecompHolder{Idx};
 
-        fprintf('==============================================\n');
-        alCurrBWs
-        alCurrScales
-        learnedDecomp
-        fprintf('==============================================\n');
-
         % IMPORTANT: update numGroups
         numGroups = numel(learnedDecomp);
 
         % Store the info
         dMHist{iterHyperTune} = numGroups;
-        fprintf('M = %d\n', numGroups);
-      end 
-    end %%% end of hyper-param tuning
+      end %%% end of decide case
 
-    % if ~params.useFixedBandWidth ...
-
-    alCurrBW = alCurrBWs(1); %TODO: modify to allow different bandwidths
-    if numDims < 24
-      learnedDecompStr = '';
-      for i = 1:numel(learnedDecomp)
-        learnedDecompStr = [learnedDecompStr mat2str(learnedDecomp{i})];
+      alCurrBW = alCurrBWs(1); %TODO: modify to allow different bandwidths
+      if numDims < 24
+        learnedDecompStr = '';
+        for i = 1:numel(learnedDecomp)
+          learnedDecompStr = [learnedDecompStr mat2str(learnedDecomp{i})];
+        end
+      else
+        learnedDecompStr = '';
       end
-    else
-      learnedDecompStr = '';
-    end
-    fprintf('Picked bw: %0.4f (%0.4f, %0.4f), Scale: %0.4f. Coords: %s (%d)\n', ...
-      alCurrBW, alBWLB, alBWUB, alCurrScales(1), ...
-      learnedDecompStr, numel(learnedDecomp) );
-    fprintf('------------------------------------------------------------------\n');
+      fprintf('Picked bw: %0.4f (%0.4f, %0.4f), Scale: %0.4f. Coords: %s (%d)\n', ...
+        alCurrBW, alBWLB, alBWUB, alCurrScales(1), ...
+        learnedDecompStr, numel(learnedDecomp) );
+    end  %%% end of hyper-param tuning
 
     % Now build the GP
     currGPParams.commonMeanFunc = gpHyperParams.commonMeanFunc;
