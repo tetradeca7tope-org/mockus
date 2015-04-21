@@ -27,6 +27,11 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
   CHOOSEdM_VAL = 'maxVal';
   CHOOSEdM_FIXED = 'fixed';
 
+  fprintf('==============================\n');
+  params
+  decomp
+  fprintf('==============================\n');
+
   % Prelims
   ptHolder = [];
   numDims = size(bounds, 1);
@@ -230,6 +235,11 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
         [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp] = ...
           addGPDecompMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
             decomp, gpHyperParams );
+            fprintf('=========================================\n');
+            learnedDecomp
+            alCurrBWs
+            alCurrScales
+            fprintf('=========================================\n');
 
       else
         % Initialize place holder to store all results
@@ -238,10 +248,15 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
         learnedDecompHolder = cell(numdMCands,1);
         mllHolder = nan(numdMCands,1);
 
+        fprintf('============================================\n');
+        gpHyperParams
+        fprintf('============================================\n');
+
         for i=1:numdMCands
           [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp, mll] = ...
             addGPDecompMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
               decomp{i}, gpHyperParams );
+
           alCurrBWsHolder{i} = alCurrBWs;
           alCurrScalesHolder{i} = alCurrScales;
           learnedDecompHolder{i} = learnedDecomp;
@@ -255,13 +270,13 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
            [minNegMll, Idx] = min(mllHolder);
            mllHolder;
            fprintf('Min Negative Likelihood is %d\n', minNegMll);
-         
+
          elseif strcmp(params.choosedM, CHOOSEdM_ORDER)
            % pick the next (d,M) in order
            Idx = mod(iterHyperTune, numdMCands) + 1;
            negMll = mllHolder(Idx);
            fprintf('Pick (d,M)-pairs in order, mll = %d\n', negMll);
-         
+
          elseif strcmp(params.choosedM, CHOOSEdM_NORM)
            funcTmp = @(x)(x.d);
            allds = cellfun(funcTmp,decomp);
@@ -269,22 +284,22 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
            [minNormNegMll, Idx] = min(normMll);
            normMll;
            fprintf('Normed Min Negative Likelihood is %d\n', minNormNegMll);
-        
+
         elseif strcmp(params.choosedM, CHOOSEdM_VAL)
           % favor small d over large d
           fprintf('Current Max Val: %d\n', currMaxVal);
           if ( iterHyperTune > numdMCands )
-            fprintf('CurrPt Val:%d\n',nextPtVal);          
+            fprintf('CurrPt Val:%d\n',nextPtVal);
             if (nextPtVal < 0.8 * currMaxVal) & (Idx > 1)
               Idx = Idx - 1;
             end
-          else 
+          else
             Idx = iterHyperTune;
           end
-         
+
         elseif strcmp(params.choosedM, CHOOSEdM_FIXED)
           Idx = round(numdMCands/2);
-        
+
         else
           fprintf('Do not specify how to decide, choose randomly\n');
           Idx = randi([1, numdMCands],1);
@@ -298,6 +313,11 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
         alCurrBWs = alCurrBWsHolder{Idx};
         alCurrScales = alCurrScalesHolder{Idx};
         learnedDecomp = learnedDecompHolder{Idx};
+
+        fprintf('==============================================\n');
+        alCurrBWs
+        alCurrScales
+        fprintf('==============================================\n');
 
         % IMPORTANT: update numGroups
         numGroups = numel(learnedDecomp);
