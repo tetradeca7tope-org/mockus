@@ -12,7 +12,7 @@ addpath ../utils/
 
 warning off;
 
-uTest = false;
+uTest = true;
 
 if ~uTest
 % Fixed experiment parameters
@@ -49,9 +49,6 @@ saveFileName = sprintf('%stoyExp-%d-%d-%s.mat', resultsDir, numDims, ...
 th = rand(1000, numDims); fth = func(th);
 meanFth = mean(fth);
 stdFth = std(fth);
-
-
-
 
 % Parameters for additive Bayesian optimization
 boParams.optPtStdThreshold = 0.002;
@@ -139,8 +136,11 @@ for expIter = 1:numExperiments
     
     boAddParamsCurr.diRectParams.maxevals = ceil(0.9 * numDiRectEvals/numCurrGroups);
     
+    % [~, ~, ~, valHistAdd] = ...
+    %  bayesOptDecompAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
+    
     [~, ~, ~, valHistAdd] = ...
-      bayesOptDecompAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
+      decide(func, decompAdd, bounds, numIters, boAddParamsCurr);
     
     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
     boAddHistories(expIter, :, candIter) = valHistAdd';
