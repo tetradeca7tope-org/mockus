@@ -20,17 +20,20 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
   DECOMP_RAND = 'random';
   DECOMP_PLEARN = 'partialLearn';
   DECOMP_DECIDE = 'decide';
+
   CHOOSEdM_MLL = 'maxMll';
   CHOOSEdM_ORDER = 'inOrder';
   CHOOSEdM_NORM = 'normalize';
   CHOOSEdM_VAL = 'maxVal';
+  CHOOSEdM_FIXED = 'fixed';
 
   % Prelims
   ptHolder = [];
   numDims = size(bounds, 1);
   dummyPts = zeros(0, numDims); % to build the GPs
   MAX_THRESHOLD_EXCEEDS = 5;
-  NUM_ITERS_PER_PARAM_RELEARN = 25;
+  % NUM_ITERS_PER_PARAM_RELEARN = 25;
+  NUM_ITERS_PER_PARAM_RELEARN = 10;
 
   % Later used to help store tuning results
   iterHyperTune = 0;
@@ -59,9 +62,27 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
       end
 
     else
-      % If decide, start with the first (d,M) option
-      numGroups = decomp{1}.M;
-      numdMCands = numel(decomp);
+       % If decide
+       numdMCands = numel(decomp);
+       if isfield(params, 'choosedM')
+         if strcmp(params.choosedM, CHOOSEdM_MLL)
+            Idx = 1;
+         elseif strcmp(params.choosedM, CHOOSEdM_ORDER)
+            Idx = 1;
+         elseif strcmp(params.choosedM, CHOOSEdM_NORM)
+            Idx = 1;
+         elseif strcmp(params.choosedM, CHOOSEdM_VAL)
+            Idx = 1;
+         elseif strcmp(params.choosedM, CHOOSEdM_FIXED)
+            Idx = round(numdMCands/2);
+         else
+          Idx = randi([1, numdMCands],1);
+         end
+
+       else
+          Idx = randi([1, numdMCands],1);
+       end
+       numGroups = decomp{Idx}.M;
     end
 
 
@@ -260,13 +281,16 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
           else 
             Idx = iterHyperTune;
           end
-          
-  
+         
+        elseif strcmp(params.choosedM, CHOOSEdM_FIXED)
+          Idx = round(numdMCands/2);
+        
         else
-           fprintf('Do not specify how to decide, choose randomly\n');
-           Idx = randi([1, numdMCands],1);
-         end
-        else
+          fprintf('Do not specify how to decide, choose randomly\n');
+          Idx = randi([1, numdMCands],1);
+        end
+
+       else
           fprintf('Do not specify how to decide, choose randomly\n');
           Idx = randi([1, numdMCands],1);
         end
@@ -281,7 +305,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
         % Store the info
         dMHist{iterHyperTune} = numGroups;
 
-        fprintf('---------------------------------\n');
+
         fprintf('M = %d\n', numGroups);
 
     end   %%% end of hyper-param tuning
@@ -300,7 +324,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
         fprintf('Picked bw: %0.4f (%0.4f, %0.4f), Scale: %0.4f. Coords: %s (%d)\n', ...
           alCurrBW, alBWLB, alBWUB, alCurrScales(1), ...
           learnedDecompStr, numel(learnedDecomp) );
-
+        fprintf('------------------------------------------------------------------\n');
   end
 
     % Now build the GP
