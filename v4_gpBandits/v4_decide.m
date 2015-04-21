@@ -12,7 +12,7 @@ addpath ../utils/
 
 warning off;
 
-uTest = true;
+uTest = false;
 
 if ~uTest
 % Fixed experiment parameters
@@ -21,8 +21,8 @@ numDiRectEvals = 500;
 numIters = 300;
 else
 % Unit text experiment parameters
-numExperiments = 2;
-numDiRectEvals = 5;
+numExperiments = 1;
+numDiRectEvals = 50;
 numIters = 30;
 end
 
@@ -151,7 +151,7 @@ for expIter = 1:numExperiments
 
   
   % Decomposition varies across iterations
-  fprintf('\nChoose the decomposition at each iteration\n');
+  fprintf('\nChoose the decomposition\n');
   
   % Initialize (d,M) pairs that passed to bayesOptDecideAddGP
   decomp = cell(numdCands,1);
@@ -162,9 +162,10 @@ for expIter = 1:numExperiments
 
   % How to choose (d,M) pairs
   % boUDParams.choosedM = 'maxMll';
-  boUDParams.choosedM = 'inOrder';
+  % boUDParams.choosedM = 'inOrder';
   % boUDParams.choosedM = 'normalize';
   % boUDParams.choosedM = 'maxVal';
+  % boUDParams.choosedM = 'fixed';
   
 
   [~, ~, ~, valHistDecide,~, dMHist, ptHolder] = ...
@@ -184,7 +185,7 @@ for expIter = 1:numExperiments
     'numIters', 'totalNumQueries', ...
     'boKDHistories', 'boAddHistories', 'boUDHistories', ...
     'boKDSimpleRegrets', 'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
-    'boKDCumRegrets', 'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams' ...
-    'numDimsPerGroupCands', 'dMHistAll','ptHolder');
+    'boKDCumRegrets', 'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
+    'numDimsPerGroupCands', 'dMHistAll','ptAll');
 
 end
