@@ -327,7 +327,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
 
 
         fprintf('M = %d\n', numGroups);
-
+      end
     end   %%% end of hyper-param tuning
 
     % if ~params.useFixedBandWidth ...
@@ -345,7 +345,6 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
           alCurrBW, alBWLB, alBWUB, alCurrScales(1), ...
           learnedDecompStr, numel(learnedDecomp) );
         fprintf('------------------------------------------------------------------\n');
-  end
 
     % Now build the GP
     currGPParams.commonMeanFunc = gpHyperParams.commonMeanFunc;
@@ -397,7 +396,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
   maxVal = currMaxVal;
   maxPt = currMaxPt;
 
-end
+end % end of decide function
 
 
 % function to obtain the next query point
