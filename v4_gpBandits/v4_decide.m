@@ -23,13 +23,13 @@ else
 % Unit text experiment parameters
 numExperiments = 1;
 numDiRectEvals = 50;
-numIters = 30;
+numIters = 100;
 end
 
 % Problem parameters
 numDims = 6;
 trueNumDimsPerGroup = 2;
-numDimsPerGroupCands = [1 2 3 4 5 6]';
+numDimsPerGroupCands = [1 2 3 6]';
 numdCands = numel(numDimsPerGroupCands);
 
 % Get the function
@@ -165,8 +165,7 @@ for expIter = 1:numExperiments
   % boUDParams.choosedM = 'inOrder';
   % boUDParams.choosedM = 'normalize';
   % boUDParams.choosedM = 'maxVal';
-  % boUDParams.choosedM = 'fixed';
-  
+  boUDParams.choosedM = 'fixed';
 
   [~, ~, ~, valHistDecide,~, dMHist, ptHolder] = ...
       decide(func, decomp, bounds, numIters, boUDParams); 
