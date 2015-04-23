@@ -33,7 +33,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
   dummyPts = zeros(0, numDims); % to build the GPs
   MAX_THRESHOLD_EXCEEDS = 5;
   NUM_ITERS_PER_PARAM_RELEARN = 25;
-%  NUM_ITERS_PER_PARAM_RELEARN = 10;
+%  NUM_ITERS_PER_PARAM_RELEARN = 35;
 
   % Later used to help store tuning results
   iterHyperTune = 0;
