@@ -1,11 +1,14 @@
 % plot VJ results
 
 % collectVJResults;
+clear all;
+% load('results/alpha'); % explore range = 7
+load('results/beta'); % explore range = 5
 
 % Prelims
 close all;
-PLOT_ERR_BARS = true;
-% PLOT_ERR_BARS = false;
+% PLOT_ERR_BARS = true;
+PLOT_ERR_BARS = false;
 NUM_ERR_BARS = 10;
 MARKER_SIZE = 8;
 LINE_WIDTH = 2;
@@ -18,8 +21,8 @@ plotShapesDot = {'o.', '+.', '*.', 'x.', 's.', 'd.', '^.', 'p.', '>.', 'v.', ...
       'o.', '+.', '*.', 'x.', 's.'};
 plotShapes = {'o', '+', '*', 'x', 's', 'd', '^', 'p', '>', 'v', ...
       'o', '+', '*', 'x', 's'};
-plotFunc = @semilogx;
-plotFunc = @loglog;
+% plotFunc = @semilogx;
+% plotFunc = @loglog;
 plotFunc = @semilogy;
 % plotFunc = @plot
 qq = 1:totalNumQueries;
@@ -29,7 +32,9 @@ numExperiments = sum(experimentIdxs);
 numExperiments,
 
 numDimsPerGroupCands,
-candPlotIdxs = [1 2 5 7 8 9]; %[2, 3, 4, 5]; % for 10D example
+% candPlotIdxs = [1 2 5 7 8 9]; %[2, 3, 4, 5]; % for 10D example
+candPlotIdxs = [1 2 3 4 5 6 7 8];
+
 boAddMaxVals = boAddMaxVals(:,:,candPlotIdxs);
 numDimsPerGroupCands = numDimsPerGroupCands(candPlotIdxs);
 
@@ -47,21 +52,21 @@ for regIter = 1:1
     AddRegStdErr = std(boAddMaxVals, 1)/sqrt(numExperiments);
     randRegStdErr = std(randMaxVals, 1)/sqrt(numExperiments);
     % For diRect
-    diRectReg = diRectMaxVals;
-    figTitlePrefix = 'Max Vals';
+    % diRectReg = diRectMaxVals;
+    % figTitlePrefix = 'Max Vals';
 
   else % Now do Cumulative Regret
 
   end
 
   % Correct extra terms for diRect
-  diRectReg = diRectReg(1:totalNumQueries);
+  % diRectReg = diRectReg(1:totalNumQueries);
   
   % Store the minimum and maximum for Plotting
   addRegMeanMinVals = AddRegMean(1, 1, :);
-  minPlotVal = min([randRegMean(1); addRegMeanMinVals(:)]);
+  minPlotVal = min([randRegMean(1); addRegMeanMinVals(:)])
   addRegMeanMaxVals = AddRegMean(1, end, :);
-  maxPlotVal = max([ randRegMean(end);addRegMeanMaxVals(:)]);
+  maxPlotVal = max([ randRegMean(end);addRegMeanMaxVals(:)])
 
   % First plot the nominal value
   figure;
@@ -72,11 +77,12 @@ for regIter = 1:1
   plotFunc(qqq, randRegMean(qqq), plotShapes{3}, 'Color', plotColours{3}, ...
      'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
   if regIter == 1, % Don't plot Cum Regret for DiRect
-    plotFunc(qqq, diRectReg(qqq), plotShapes{4}, 'Color', plotColours{4}, ...
-      'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
+    % plotFunc(qqq, diRectReg(qqq), plotShapes{4}, 'Color', plotColours{4}, ...
+     % 'MarkerSize', MARKER_SIZE, 'LineWidth', LINE_WIDTH); hold on,
   end
   if regIter == 1
-    legEntries = {'OpenCV', 'Random', 'DiRect' };
+    % legEntries = {'OpenCV', 'Random', 'DiRect' };
+    legEntries = {'OpenCV', 'Random'};
   else
     legEntries = {'Random', 'BO-KD', 'BO-UD'};
   end
@@ -93,10 +99,10 @@ for regIter = 1:1
     end
   end
   legend(legEntries);
-  % Now reproduce the curve without the bullets
+  % Now reproduce the curve without the bullets 
   plotFunc(qq, randRegMean, 'Color', plotColours{3}, 'LineWidth', LINE_WIDTH); hold on,
   if regIter == 1, % Don't plot Cum Regret for DiRect
-    plotFunc(qq, diRectReg, 'Color', plotColours{4}, 'LineWidth', LINE_WIDTH); hold on,
+    % plotFunc(qq, diRectReg, 'Color', plotColours{4}, 'LineWidth', LINE_WIDTH); hold on,
   end
   for i = 1:numel(candPlotIdxs)
     plotFunc(qq, AddRegMean(1,:,i), 'Color', plotColours{4+i}, 'LineWidth', LINE_WIDTH);

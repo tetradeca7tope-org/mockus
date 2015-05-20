@@ -15,15 +15,15 @@ warning off;
 uTest = false;
 
 if ~uTest
-% Fixed experiment parameters
-numExperiments = 3;
-numDiRectEvals = 500;
-numIters = 300;
+  % Fixed experiment parameters
+  numExperiments = 3;
+  numDiRectEvals = 500;
+  numIters = 300;
 else
-% Unit text experiment parameters
-numExperiments = 3;
-numDiRectEvals = 50;
-numIters = 70;
+  % Unit text experiment parameters
+  numExperiments = 3;
+  numDiRectEvals = 50;
+  numIters = 70;
 end
 
 % Problem parameters
@@ -129,10 +129,10 @@ for expIter = 1:numExperiments
     boAddCumRegrets(expIter, :, candIter) = cR'; 
   end
 
-  
+
   % Decomposition varies across iterations
   fprintf('\nChoose the decomposition\n');
-  
+
   % How to choose (d,M) pairs
   % boUDParams.choosedM = 'maxMll';
   % boUDParams.choosedM = 'inOrder';
@@ -141,17 +141,17 @@ for expIter = 1:numExperiments
   % boUDParams.choosedM = 'fixed';
 
   [~, ~, ~, valHistDecide,~, dMHist, ptHolder] = ...
-      decide(func, decomp, bounds, numIters, boUDParams); 
+    decide(func, decomp, bounds, numIters, boUDParams); 
   dMHistAll = [dMHistAll; dMHist];
   ptAll(expIter,:,:) = ptHolder;
 
   [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
-  
+
   boUDHistories(expIter, :) = valHistDecide';
   boUDSimpleRegrets(expIter, :) = sR';
   boUDCumRegrets(expIter, :) = cR';
 
- % Save Results at each iteration
+  % Save Results at each iteration
   save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
     'funcProperties', 'trueMaxVal',  ...
     'numIters', 'totalNumQueries', ...
