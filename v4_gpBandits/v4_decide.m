@@ -12,7 +12,13 @@ addpath ../utils/
 
 warning off;
 
-uTest = false;
+% Problem parameters
+numDims = 12;
+trueNumDimsPerGroup = 6;
+numDimsPerGroupCands = [1 3 4 12]';
+numdCands = numel(numDimsPerGroupCands);
+
+uTest = true;
 
 if ~uTest
   % Fixed experiment parameters
