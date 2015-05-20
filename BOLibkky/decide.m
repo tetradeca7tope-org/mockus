@@ -253,7 +253,11 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
           if strcmp(params.choosedM, CHOOSEdM_MLL)
             % pick the next (d,M) based on marginal likelihood
             [minNegMll, Idx] = min(mllHolder);
-            fprintf('Min Negative Likelihood is %d\n', minNegMll);
+            fprintf('-----------------------------------------\n');
+            mllHolder
+            fprintf('| Min Negative Likelihood: %d |\n', minNegMll);
+            fprintf('| Idx: %d\n', Idx);
+            fprintf('-----------------------------------------\n');
 
           elseif strcmp(params.choosedM, CHOOSEdM_ORDER)
             % pick the next (d,M) in order

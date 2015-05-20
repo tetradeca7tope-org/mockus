@@ -28,8 +28,8 @@ if ~uTest
 else
   % Unit text experiment parameters
   numExperiments = 1;
-  numDiRectEvals = 50;
-  numIters = 70;
+  numDiRectEvals = 5;
+  numIters = 130;
 end
 
 % Get the function
@@ -111,23 +111,23 @@ for expIter = 1:numExperiments
   fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
   fprintf('==============================================================\n');
 
-  % Learn Decomposition
-  fprintf('\nKnown Grouping Unknown Decomposition\n');
+  % % Learn Decomposition
+  % fprintf('\nKnown Grouping Unknown Decomposition\n');
 
-  % For the candidates in numDimsPerGroupCands
-  for candIter = 1:numdCands
-    fprintf('\nUsing an arbitrary %d/ %d decomposition\n', ...
-      numDimsPerGroupCands(candIter), numDims );
+  % % For the candidates in numDimsPerGroupCands
+  % for candIter = 1:numdCands
+  %   fprintf('\nUsing an arbitrary %d/ %d decomposition\n', ...
+  %     numDimsPerGroupCands(candIter), numDims );
 
-    decompAdd = decomp{candIter};
-    [~, ~, ~, valHistAdd] = ...
-      decide(func, decompAdd, bounds, numIters, boAddParams);
+  %   decompAdd = decomp{candIter};
+  %   [~, ~, ~, valHistAdd] = ...
+  %     decide(func, decompAdd, bounds, numIters, boAddParams);
 
-    [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
-    boAddHistories(expIter, :, candIter) = valHistAdd';
-    boAddSimpleRegrets(expIter, :, candIter) = sR';
-    boAddCumRegrets(expIter, :, candIter) = cR'; 
-  end
+  %   [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
+  %   boAddHistories(expIter, :, candIter) = valHistAdd';
+  %   boAddSimpleRegrets(expIter, :, candIter) = sR';
+  %   boAddCumRegrets(expIter, :, candIter) = cR'; 
+  % end
 
 
   % Decomposition varies across iterations
@@ -152,7 +152,7 @@ for expIter = 1:numExperiments
   boUDCumRegrets(expIter, :) = cR';
 
   % Save Results at each iteration
-  if uTest
+  if ~uTest
     save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
       'funcProperties', 'trueMaxVal',  ...
       'numIters', 'totalNumQueries', ...

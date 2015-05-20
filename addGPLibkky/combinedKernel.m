@@ -10,6 +10,6 @@ function K = combinedKernel(X1, X2, decomposition, bws, scales)
     scale = scales(k);
     K = K + augKernel(X1, X2, coords, bw, scale);
   end
-  % scale the kernel
-  K = K / numGroups;
+  % scale
+  % K = K ./ numGroups;
 end
