@@ -1,4 +1,4 @@
-function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(...
+function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(...
     oracle, decomp, bounds, numIters, params)
   % If decompStrat is decide, decomp is a cell array of struct that contains
   % (d,M) pairs
@@ -253,11 +253,8 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
           if strcmp(params.choosedM, CHOOSEdM_MLL)
             % pick the next (d,M) based on marginal likelihood
             [minNegMll, Idx] = min(mllHolder);
-            fprintf('-----------------------------------------\n');
-            mllHolder
-            fprintf('| Min Negative Likelihood: %d |\n', minNegMll);
-            fprintf('| Idx: %d\n', Idx);
-            fprintf('-----------------------------------------\n');
+            % mllHolder
+            fprintf('Min Negative Likelihood -- Idx: %d \n', Idx);
 
           elseif strcmp(params.choosedM, CHOOSEdM_ORDER)
             % pick the next (d,M) in order
@@ -303,7 +300,7 @@ function [maxVal, maxPt, boQueries, boVals, history, dMHist, ptHolder] = decide(
         numGroups = numel(learnedDecomp);
 
         % Store the info
-        dMHist{iterHyperTune} = numGroups;
+        MHist{iterHyperTune} = numGroups;
       end %%% end of decide case
 
       alCurrBW = alCurrBWs(1); %TODO: modify to allow different bandwidths

@@ -93,7 +93,7 @@ randSimpleRegrets = zeros(numExperiments, totalNumQueries);
 boAddCumRegrets = zeros(numExperiments, totalNumQueries, numdCands);
 boUDCumRegrets = zeros(numExperiments, totalNumQueries);
 randCumRegrets = zeros(numExperiments, totalNumQueries);
-dMHistAll = []; 
+MHistAll = []; 
 ptAll = [];
 
 
@@ -113,22 +113,22 @@ for expIter = 1:numExperiments
   fprintf('==============================================================\n');
 
   % % Learn Decomposition
-  % fprintf('\nKnown Grouping Unknown Decomposition\n');
+   fprintf('\nKnown Grouping Unknown Decomposition\n');
 
-  % % For the candidates in numDimsPerGroupCands
-  % for candIter = 1:numdCands
-  %   fprintf('\nUsing an arbitrary %d/ %d decomposition\n', ...
-  %     numDimsPerGroupCands(candIter), numDims );
+   % For the candidates in numDimsPerGroupCands
+   for candIter = 1:numdCands
+     fprintf('\nUsing an arbitrary %d/ %d decomposition\n', ...
+       numDimsPerGroupCands(candIter), numDims );
 
-  %   decompAdd = decomp{candIter};
-  %   [~, ~, ~, valHistAdd] = ...
-  %     decide(func, decompAdd, bounds, numIters, boAddParams);
+     decompAdd = decomp{candIter};
+     [~, ~, ~, valHistAdd] = ...
+       decide(func, decompAdd, bounds, numIters, boAddParams);
 
-  %   [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
-  %   boAddHistories(expIter, :, candIter) = valHistAdd';
-  %   boAddSimpleRegrets(expIter, :, candIter) = sR';
-  %   boAddCumRegrets(expIter, :, candIter) = cR'; 
-  % end
+     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
+     boAddHistories(expIter, :, candIter) = valHistAdd';
+     boAddSimpleRegrets(expIter, :, candIter) = sR';
+     boAddCumRegrets(expIter, :, candIter) = cR'; 
+   end
 
 
   % Decomposition varies across iterations
@@ -141,9 +141,9 @@ for expIter = 1:numExperiments
   % boUDParams.choosedM = 'maxVal';
   % boUDParams.choosedM = 'fixed';
 
-  [~, ~, ~, valHistDecide,~, dMHist, ptHolder] = ...
+  [~, ~, ~, valHistDecide,~, MHist, ptHolder] = ...
     decide(func, decomp, bounds, numIters, boUDParams); 
-  dMHistAll = [dMHistAll; dMHist];
+  MHistAll = [MHistAll; MHist];
   ptAll(expIter,:,:) = ptHolder;
 
   [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
@@ -151,7 +151,6 @@ for expIter = 1:numExperiments
   boUDHistories(expIter, :) = valHistDecide';
   boUDSimpleRegrets(expIter, :) = sR';
   boUDCumRegrets(expIter, :) = cR';
-
 
   randQueries = bsxfun(@plus, ...
     bsxfun(@times, rand(totalNumQueries, numDims), ...
@@ -171,7 +170,7 @@ for expIter = 1:numExperiments
       'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
       'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
       'randSimpleRegrets', 'randCumRegrets', ...
-      'numDimsPerGroupCands', 'dMHistAll','ptAll');
+      'numDimsPerGroupCands', 'MHistAll','ptAll');
   end
 
 end
