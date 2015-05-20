@@ -88,10 +88,11 @@ boUDHistories = zeros(numExperiments, totalNumQueries);
 % For storing simple regret values
 boAddSimpleRegrets = zeros(numExperiments, totalNumQueries, numdCands);
 boUDSimpleRegrets = zeros(numExperiments, totalNumQueries);
-
+randSimpleRegrets = zeros(numExperiments, totalNumQueries);
 % For storing cumulative regret values
 boAddCumRegrets = zeros(numExperiments, totalNumQueries, numdCands);
 boUDCumRegrets = zeros(numExperiments, totalNumQueries);
+randCumRegrets = zeros(numExperiments, totalNumQueries);
 dMHistAll = []; 
 ptAll = [];
 
@@ -151,6 +152,16 @@ for expIter = 1:numExperiments
   boUDSimpleRegrets(expIter, :) = sR';
   boUDCumRegrets(expIter, :) = cR';
 
+
+  randQueries = bsxfun(@plus, ...
+    bsxfun(@times, rand(totalNumQueries, numDims), ...
+      (bounds(:,2) - bounds(:,1))' ), bounds(:,1)' );
+  randHistories(expIter, :) = func(randQueries)';
+  [sR, cR] = getRegrets(trueMaxVal, randHistories(expIter, :)');
+  randSimpleRegrets(expIter, :) = sR';
+  randCumRegrets(expIter, :) = cR';
+
+
   % Save Results at each iteration
   if ~uTest
     save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
@@ -159,6 +170,7 @@ for expIter = 1:numExperiments
       'boAddHistories', 'boUDHistories', ...
       'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
       'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
+      'randSimpleRegrets', 'randCumRegrets', ...
       'numDimsPerGroupCands', 'dMHistAll','ptAll');
   end
 
