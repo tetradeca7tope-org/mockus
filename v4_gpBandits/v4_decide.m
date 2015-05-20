@@ -21,16 +21,10 @@ if ~uTest
   numIters = 300;
 else
   % Unit text experiment parameters
-  numExperiments = 3;
+  numExperiments = 1;
   numDiRectEvals = 50;
   numIters = 70;
 end
-
-% Problem parameters
-numDims = 6;
-trueNumDimsPerGroup = 2;
-numDimsPerGroupCands = [1 2 3 6]';
-numdCands = numel(numDimsPerGroupCands);
 
 % Get the function
 [func, funcProperties] = getAdditiveFunction(numDims, trueNumDimsPerGroup);
@@ -134,7 +128,7 @@ for expIter = 1:numExperiments
   fprintf('\nChoose the decomposition\n');
 
   % How to choose (d,M) pairs
-  % boUDParams.choosedM = 'maxMll';
+  boUDParams.choosedM = 'maxMll';
   % boUDParams.choosedM = 'inOrder';
   % boUDParams.choosedM = 'normalize';
   % boUDParams.choosedM = 'maxVal';
@@ -152,12 +146,14 @@ for expIter = 1:numExperiments
   boUDCumRegrets(expIter, :) = cR';
 
   % Save Results at each iteration
-  save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
-    'funcProperties', 'trueMaxVal',  ...
-    'numIters', 'totalNumQueries', ...
-    'boAddHistories', 'boUDHistories', ...
-    'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
-    'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
-    'numDimsPerGroupCands', 'dMHistAll','ptAll');
+  if uTest
+    save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
+      'funcProperties', 'trueMaxVal',  ...
+      'numIters', 'totalNumQueries', ...
+      'boAddHistories', 'boUDHistories', ...
+      'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
+      'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
+      'numDimsPerGroupCands', 'dMHistAll','ptAll');
+  end
 
 end
