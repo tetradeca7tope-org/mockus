@@ -112,7 +112,7 @@ for expIter = 1:numExperiments
   fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
   fprintf('==============================================================\n');
 
-  % % Learn Decomposition
+  % Learn Decomposition
   fprintf('\nKnown Grouping Unknown Decomposition\n');
 
   % For the candidates in numDimsPerGroupCands
