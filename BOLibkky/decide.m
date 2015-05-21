@@ -240,7 +240,7 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(o
         end
 
         % update the (d,M) posterior
-        dMposterior = dMposterior + mllHolder;
+        dMposterior = dMposterior + mllHolder';
 
         % How to choose the next (d,M) pair
         switch params.choosedM
