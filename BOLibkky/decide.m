@@ -1,5 +1,4 @@
-function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(...
-    oracle, decomp, bounds, numIters, params)
+function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(oracle, decomp, bounds, numIters, params)
   % If decompStrat is decide, decomp is a cell array of struct that contains
   % (d,M) pairs
 
@@ -21,11 +20,8 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(.
   DECOMP_PLEARN = 'partialLearn';
   DECOMP_DECIDE = 'decide';
 
-  CHOOSEdM_MLL = 'maxMll';
-  CHOOSEdM_ORDER = 'inOrder';
-  CHOOSEdM_NORM = 'normalize';
-  CHOOSEdM_VAL = 'maxVal';
-  CHOOSEdM_FIXED = 'fixed';
+  CHOOSEdM_MLL = 'mll';
+  CHOOSEdM_RAND = 'rand';
 
   % Prelims
   ptHolder = [];
@@ -41,50 +37,40 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(.
   % The Decomposition
   % -----------------------------------------------------
   gpHyperParams.decompStrategy = params.decompStrategy;
-  if strcmp(params.decompStrategy, DECOMP_KNOWN)
-    decomposition = decomp;
-    numGroups = numel(decomposition);
-    % Do some diagnostics on the decomposition and print them out
-    relevantCoords = cell2mat(decomposition');
-    numRelevantCoords = numel(relevantCoords);
-    if numRelevantCoords ~= numel(unique(relevantCoords))
-      error('The Same coordinate cannot appear in different groups');
-    end
-    fprintf('# Groups: %d, %d/%d coordinates are relevant\n', ...
-      numGroups, numRelevantCoords, numDims);
-
-  elseif ~strcmp(params.decompStrategy, DECOMP_DECIDE)
-    if isfield(decomp, 'M')
-      % Now decomposition should have two fields d and M
-      numGroups = decomp.M;
-    else
-      numGroups = numel(decomp);
-    end
-
-  else
-    % If decide
-    numdMCands = numel(decomp);
-    if isfield(params, 'choosedM')
-      if strcmp(params.choosedM, CHOOSEdM_MLL)
-        Idx = 1;
-      elseif strcmp(params.choosedM, CHOOSEdM_ORDER)
-        Idx = 1;
-      elseif strcmp(params.choosedM, CHOOSEdM_NORM)
-        Idx = 1;
-      elseif strcmp(params.choosedM, CHOOSEdM_VAL)
-        Idx = 1;
-      elseif strcmp(params.choosedM, CHOOSEdM_FIXED)
-        Idx = round(numdMCands/2);
-      else
-        Idx = randi([1, numdMCands],1);
+  switch params.decompStrategy
+    case DECOMP_KNOWN
+      decomposition = decomp;
+      numGroups = numel(decomposition);
+      % Do some diagnostics on the decomposition and print them out
+      relevantCoords = cell2mat(decomposition');
+      numRelevantCoords = numel(relevantCoords);
+      if numRelevantCoords ~= numel(unique(relevantCoords))
+        error('The Same coordinate cannot appear in different groups');
       end
+      fprintf('# Groups: %d, %d/%d coordinates are relevant\n', numGroups, numRelevantCoords, numDims);
 
-    else
-      Idx = randi([1, numdMCands],1);
-    end
-    numGroups = decomp{Idx}.M;
+    case DECOMP_DECIDE
+      numdMCands = numel(decomp);
+      if isfield(params, 'choosedM')
+        switch params.choosedM
+          case CHOOSEdM_MLL
+            Idx = 1;
+          case CHOOSEdM_RAND
+            Idx = randi([1, numdMCands],1);
+        end
+      else
+        error('Please specify how to choose (d,M)'); 
+      end
+      numGroups = decomp{Idx}.M; 
+
+    otherwise
+      if isfield(decomp, 'M')
+        % Now decomposition should have two fields d and M
+        numGroups = decomp.M;
+      else
+        numGroups = numel(decomp);
+      end
   end
-
 
   % If Init Points are not given, initialize
   if ~isfield(params, 'initPts') | isempty(params.initPts)
@@ -209,7 +195,7 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(.
         fprintf('Threshold Exceeded %d times - Reducing BW\n', ...
           MAX_THRESHOLD_EXCEEDS);
       else
-        %         alBWUB = max(alBWLB, 0.9 * alBWUB);
+        % alBWUB = max(alBWLB, 0.9 * alBWUB);
       end
 
       % Define the BW range for addGPMargLikelihood
@@ -225,12 +211,12 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(.
       end % alBWUB == alBWLB
 
       % Obtain the optimal GP parameters
-      % Two cases here
+      % Two cases here: not-decide or decide
       if ~strcmp(params.decompStrategy, DECOMP_DECIDE)
         [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp] = ...
           addGPDecompMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
           decomp, gpHyperParams );
-      else %%% the decide case
+      else 
         % Initialize place holder to store all results
         alCurrBWsHolder = cell(numdMCands,1);
         alCurrScalesHolder = cell(numdMCands,1);
@@ -249,47 +235,14 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(.
         end
 
         % How to choose the next (d,M) pair
-        if isfield(params, 'choosedM')
-          if strcmp(params.choosedM, CHOOSEdM_MLL)
+        switch params.choosedM
+          case CHOOSEdM_MLL
             % pick the next (d,M) based on marginal likelihood
             [minNegMll, Idx] = min(mllHolder);
-            % mllHolder
             fprintf('Min Negative Likelihood -- Idx: %d \n', Idx);
 
-          elseif strcmp(params.choosedM, CHOOSEdM_ORDER)
-            % pick the next (d,M) in order
-            Idx = mod(iterHyperTune, numdMCands) + 1;
-            negMll = mllHolder(Idx);
-            %           fprintf('Pick (d,M)-pairs in order, mll = %d\n', negMll);
-
-          elseif strcmp(params.choosedM, CHOOSEdM_NORM)
-            funcTmp = @(x)(x.d);
-            allds = cellfun(funcTmp,decomp);
-            normMll = mllHolder ./ sqrt(allds);
-            [minNormNegMll, Idx] = min(normMll);
-            normMll;
-            %           fprintf('Normed Min Negative Likelihood is %d\n', minNormNegMll);
-
-          elseif strcmp(params.choosedM, CHOOSEdM_VAL)
-            % favor small d over large d
-            fprintf('Current Max Val: %d\n', currMaxVal);
-            if ( iterHyperTune > numdMCands )
-              %            fprintf('CurrPt Val:%d\n',nextPtVal);
-              if (nextPtVal < 0.8 * currMaxVal) & (Idx > 1)
-                Idx = Idx - 1;
-              end
-            else
-              Idx = iterHyperTune;
-            end
-          elseif strcmp(params.choosedM, CHOOSEdM_FIXED)
-            Idx = round(numdMCands/2);
-          else
-            %          fprintf('Do not specify how to decide, choose randomly\n');
+          case CHOOSEdM_RAND
             Idx = randi([1, numdMCands],1);
-          end
-        else
-          %          fprintf('Do not specify how to decide, choose randomly\n');
-          Idx = randi([1, numdMCands],1);
         end
 
         alCurrBWs = alCurrBWsHolder{Idx};
@@ -301,7 +254,7 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(.
 
         % Store the info
         MHist{iterHyperTune} = numGroups;
-      end %%% end of decide case
+      end
 
       alCurrBW = alCurrBWs(1); %TODO: modify to allow different bandwidths
       if numDims < 24
@@ -349,8 +302,7 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(.
     end
     boQueries(numInitPts + boIter, :) = nextPt;
     boVals(numInitPts + boIter) = nextPtVal;
-    %     fprintf('#: %d, maxVal: %0.5f, currVal: %0.5f\n', ...
-    %       boIter, currMaxVal, nextPtVal);
+    % fprintf('#: %d, maxVal: %0.5f, currVal: %0.5f\n', boIter, currMaxVal, nextPtVal);
 
     % Check if nextPtStd is too small
     if nextPtStd < params.optPtStdThreshold
