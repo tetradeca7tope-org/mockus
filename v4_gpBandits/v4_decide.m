@@ -113,33 +113,30 @@ for expIter = 1:numExperiments
   fprintf('==============================================================\n');
 
   % % Learn Decomposition
-   fprintf('\nKnown Grouping Unknown Decomposition\n');
+  fprintf('\nKnown Grouping Unknown Decomposition\n');
 
-   % For the candidates in numDimsPerGroupCands
-   for candIter = 1:numdCands
-     fprintf('\nUsing an arbitrary %d/ %d decomposition\n', ...
-       numDimsPerGroupCands(candIter), numDims );
+  % For the candidates in numDimsPerGroupCands
+  for candIter = 1:numdCands
+    fprintf('\nUsing an arbitrary %d/ %d decomposition\n', ...
+      numDimsPerGroupCands(candIter), numDims );
 
-     decompAdd = decomp{candIter};
-     [~, ~, ~, valHistAdd] = ...
-       decide(func, decompAdd, bounds, numIters, boAddParams);
+    decompAdd = decomp{candIter};
+    [~, ~, ~, valHistAdd] = ...
+      decide(func, decompAdd, bounds, numIters, boAddParams);
 
-     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
-     boAddHistories(expIter, :, candIter) = valHistAdd';
-     boAddSimpleRegrets(expIter, :, candIter) = sR';
-     boAddCumRegrets(expIter, :, candIter) = cR'; 
-   end
+    [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
+    boAddHistories(expIter, :, candIter) = valHistAdd';
+    boAddSimpleRegrets(expIter, :, candIter) = sR';
+    boAddCumRegrets(expIter, :, candIter) = cR'; 
+  end
 
 
   % Decomposition varies across iterations
   fprintf('\nChoose the decomposition\n');
 
   % How to choose (d,M) pairs
-  boUDParams.choosedM = 'maxMll';
-  % boUDParams.choosedM = 'inOrder';
-  % boUDParams.choosedM = 'normalize';
-  % boUDParams.choosedM = 'maxVal';
-  % boUDParams.choosedM = 'fixed';
+  boUDParams.choosedM = 'mll';
+  % boUDParams.choosedM = 'rand';
 
   [~, ~, ~, valHistDecide,~, MHist, ptHolder] = ...
     decide(func, decomp, bounds, numIters, boUDParams); 
@@ -151,10 +148,11 @@ for expIter = 1:numExperiments
   boUDHistories(expIter, :) = valHistDecide';
   boUDSimpleRegrets(expIter, :) = sR';
   boUDCumRegrets(expIter, :) = cR';
-
+  
+  fprintf('Random optimization\n');
   randQueries = bsxfun(@plus, ...
     bsxfun(@times, rand(totalNumQueries, numDims), ...
-      (bounds(:,2) - bounds(:,1))' ), bounds(:,1)' );
+    (bounds(:,2) - bounds(:,1))' ), bounds(:,1)' );
   randHistories(expIter, :) = func(randQueries)';
   [sR, cR] = getRegrets(trueMaxVal, randHistories(expIter, :)');
   randSimpleRegrets(expIter, :) = sR';
