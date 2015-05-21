@@ -21,6 +21,7 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(o
   DECOMP_DECIDE = 'decide';
 
   CHOOSEdM_MLL = 'mll';
+  CHOOSEdM_SAMPLE = 'sample';
   CHOOSEdM_RAND = 'rand';
 
   % Prelims
@@ -51,17 +52,21 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(o
 
     case DECOMP_DECIDE
       numdMCands = numel(decomp);
+      % initialize array to store the posterior
+      dMposterior = zeros(1, numdMCands);
       if isfield(params, 'choosedM')
         switch params.choosedM
           case CHOOSEdM_MLL
+            Idx = 1;
+          case CHOOSEdM_SAMPLE
             Idx = 1;
           case CHOOSEdM_RAND
             Idx = randi([1, numdMCands],1);
         end
       else
-        error('Please specify how to choose (d,M)'); 
+        error('Please specify how to choose (d,M)');
       end
-      numGroups = decomp{Idx}.M; 
+      numGroups = decomp{Idx}.M;
 
     otherwise
       if isfield(decomp, 'M')
@@ -216,7 +221,7 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(o
         [~, ~, ~, ~, ~, ~, ~, alCurrBWs, alCurrScales, ~, learnedDecomp] = ...
           addGPDecompMargLikelihood( currBoQueries, currBoVals, dummyPts, ...
           decomp, gpHyperParams );
-      else 
+      else
         % Initialize place holder to store all results
         alCurrBWsHolder = cell(numdMCands,1);
         alCurrScalesHolder = cell(numdMCands,1);
@@ -234,13 +239,19 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(o
           mllHolder(i) = mll;
         end
 
+        % update the (d,M) posterior
+        dMposterior = dMposterior + mllHolder;
+
         % How to choose the next (d,M) pair
         switch params.choosedM
           case CHOOSEdM_MLL
             % pick the next (d,M) based on marginal likelihood
             [minNegMll, Idx] = min(mllHolder);
-            fprintf('Min Negative Likelihood -- Idx: %d \n', Idx);
-
+            fprintf('mll -- Idx: %d \n', Idx);
+          case CHOOSEdM_SAMPLE
+            % sample (d,M) from the marginal likelihood
+            Idx = randp(dMposterior,1);
+            fprintf('sample -- Idx: %d \n', Idx);
           case CHOOSEdM_RAND
             Idx = randi([1, numdMCands],1);
         end
