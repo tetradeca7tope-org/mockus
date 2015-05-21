@@ -3,9 +3,9 @@
 close all;
 clear all;
 LIBPATH = '~/libs/kky-matlab/';
-addpath([LIBPATH 'utils']); 
-addpath([LIBPATH 'ancillary']); 
-addpath([LIBPATH 'GPLibkky']); 
+addpath([LIBPATH 'utils']);
+addpath([LIBPATH 'ancillary']);
+addpath([LIBPATH 'GPLibkky']);
 addpath ../BOLibkky/
 addpath ../addGPLibkky/
 addpath ../utils/
@@ -54,7 +54,7 @@ stdFth = std(fth);
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
-boParams.numInitPts = 10; 
+boParams.numInitPts = 10;
 % use the same initialization points
 boParams.initPts = rand(boParams.numInitPts, numDims);
 boParams.initVals = func(boParams.initPts);
@@ -93,7 +93,7 @@ randSimpleRegrets = zeros(numExperiments, totalNumQueries);
 boAddCumRegrets = zeros(numExperiments, totalNumQueries, numdCands);
 boUDCumRegrets = zeros(numExperiments, totalNumQueries);
 randCumRegrets = zeros(numExperiments, totalNumQueries);
-MHistAll = []; 
+MHistAll = [];
 ptAll = [];
 
 
@@ -127,7 +127,7 @@ for expIter = 1:numExperiments
     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
     boAddHistories(expIter, :, candIter) = valHistAdd';
     boAddSimpleRegrets(expIter, :, candIter) = sR';
-    boAddCumRegrets(expIter, :, candIter) = cR'; 
+    boAddCumRegrets(expIter, :, candIter) = cR';
   end
 
 
@@ -135,11 +135,12 @@ for expIter = 1:numExperiments
   fprintf('\nChoose the decomposition\n');
 
   % How to choose (d,M) pairs
-  boUDParams.choosedM = 'mll';
+  % boUDParams.choosedM = 'mll';
   % boUDParams.choosedM = 'rand';
+  boUDParams.choosedM = 'sample';
 
   [~, ~, ~, valHistDecide,~, MHist, ptHolder] = ...
-    decide(func, decomp, bounds, numIters, boUDParams); 
+    decide(func, decomp, bounds, numIters, boUDParams);
   MHistAll = [MHistAll; MHist];
   ptAll(expIter,:,:) = ptHolder;
 
@@ -148,8 +149,8 @@ for expIter = 1:numExperiments
   boUDHistories(expIter, :) = valHistDecide';
   boUDSimpleRegrets(expIter, :) = sR';
   boUDCumRegrets(expIter, :) = cR';
-  
-  fprintf('Random optimization\n');
+
+  fprintf('\nRandom optimization\n');
   randQueries = bsxfun(@plus, ...
     bsxfun(@times, rand(totalNumQueries, numDims), ...
     (bounds(:,2) - bounds(:,1))' ), bounds(:,1)' );
