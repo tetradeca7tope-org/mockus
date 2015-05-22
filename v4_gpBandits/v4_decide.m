@@ -80,18 +80,20 @@ boAddParams.decompStrategy = 'partialLearn';
 
 boUDParams = boParams;
 boUDParams.decompStrategy = 'decide';
+choosedM = ['mll', 'rand', 'sample'];
+numChoosedM = numel(choosedM);
 
 % Initialize arrays for storing the history
 boAddHistories = zeros(numExperiments, totalNumQueries, numdCands);
-boUDHistories = zeros(numExperiments, totalNumQueries);
+boUDHistories = zeros(numExperiments, totalNumQueries, numChoosedM);
 
 % For storing simple regret values
 boAddSimpleRegrets = zeros(numExperiments, totalNumQueries, numdCands);
-boUDSimpleRegrets = zeros(numExperiments, totalNumQueries);
+boUDSimpleRegrets = zeros(numExperiments, totalNumQueries, numChoosedM);
 randSimpleRegrets = zeros(numExperiments, totalNumQueries);
 % For storing cumulative regret values
 boAddCumRegrets = zeros(numExperiments, totalNumQueries, numdCands);
-boUDCumRegrets = zeros(numExperiments, totalNumQueries);
+boUDCumRegrets = zeros(numExperiments, totalNumQueries, numChoosedM);
 randCumRegrets = zeros(numExperiments, totalNumQueries);
 MHistAll = [];
 ptAll = [];
@@ -133,22 +135,17 @@ for expIter = 1:numExperiments
 
   % Decomposition varies across iterations
   fprintf('\nChoose the decomposition\n');
+  for iter=1:numel{choosedM}
+    boUDParams.choosedM = choosedM(iter);
 
-  % How to choose (d,M) pairs
-  % boUDParams.choosedM = 'mll';
-  % boUDParams.choosedM = 'rand';
-  boUDParams.choosedM = 'sample';
+    [~, ~, ~, valHistDecide] = ...
+      decide(func, decomp, bounds, numIters, boUDParams);
 
-  [~, ~, ~, valHistDecide,~, MHist, ptHolder] = ...
-    decide(func, decomp, bounds, numIters, boUDParams);
-  MHistAll = [MHistAll; MHist];
-  ptAll(expIter,:,:) = ptHolder;
-
-  [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
-
-  boUDHistories(expIter, :) = valHistDecide';
-  boUDSimpleRegrets(expIter, :) = sR';
-  boUDCumRegrets(expIter, :) = cR';
+    [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
+    boUDHistories(expIter, :, iter) = valHistDecide';
+    boUDSimpleRegrets(expIter, :, iter) = sR';
+    boUDCumRegrets(expIter, :, iter) = cR';
+  end
 
   fprintf('\nRandom optimization\n');
   randQueries = bsxfun(@plus, ...
@@ -169,7 +166,7 @@ for expIter = 1:numExperiments
       'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
       'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
       'randSimpleRegrets', 'randCumRegrets', ...
-      'numDimsPerGroupCands', 'MHistAll','ptAll');
+      'numDimsPerGroupCands');
   end
 
 end
