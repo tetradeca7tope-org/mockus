@@ -29,7 +29,7 @@ else
   % Unit text experiment parameters
   numExperiments = 1;
   numDiRectEvals = 5;
-  numIters = 130;
+  numIters = 10;
 end
 
 % Get the function
@@ -80,7 +80,7 @@ boAddParams.decompStrategy = 'partialLearn';
 
 boUDParams = boParams;
 boUDParams.decompStrategy = 'decide';
-choosedM = ['mll', 'rand', 'sample'];
+choosedM = {'mll', 'sample', 'rand'};
 numChoosedM = numel(choosedM);
 
 % Initialize arrays for storing the history
@@ -135,8 +135,8 @@ for expIter = 1:numExperiments
 
   % Decomposition varies across iterations
   fprintf('\nChoose the decomposition\n');
-  for iter=1:numel{choosedM}
-    boUDParams.choosedM = choosedM(iter);
+  for iter=1:numChoosedM
+    boUDParams.choosedM = choosedM{iter};
 
     [~, ~, ~, valHistDecide] = ...
       decide(func, decomp, bounds, numIters, boUDParams);
@@ -166,7 +166,7 @@ for expIter = 1:numExperiments
       'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
       'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
       'randSimpleRegrets', 'randCumRegrets', ...
-      'numDimsPerGroupCands');
+      'numDimsPerGroupCands', choosedM);
   end
 
 end
