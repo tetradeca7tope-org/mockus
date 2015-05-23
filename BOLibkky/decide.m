@@ -254,6 +254,7 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(o
             fprintf('sample -- Idx: %d \n', Idx);
           case CHOOSEdM_RAND
             Idx = randi([1, numdMCands],1);
+            fprintf('rand -- Idx: %d\n', Idx);
         end
 
         alCurrBWs = alCurrBWsHolder{Idx};
