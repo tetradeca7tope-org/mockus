@@ -167,7 +167,7 @@ for expIter = 1:numExperiments
 
 
   % Save Results at each iteration
-  if ~uTest
+  % if ~uTest
     save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
       'funcProperties', 'trueMaxVal',  ...
       'numIters', 'totalNumQueries', ...
@@ -176,6 +176,5 @@ for expIter = 1:numExperiments
       'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
       'randSimpleRegrets', 'randCumRegrets', ...
       'numDimsPerGroupCands', 'choosedM');
-  end
-
+  % end
 end
