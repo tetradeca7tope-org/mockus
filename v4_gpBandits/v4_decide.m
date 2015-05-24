@@ -13,12 +13,21 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
-numDims = 12;
-trueNumDimsPerGroup = 6;
-numDimsPerGroupCands = [1 3 4 12]';
+% numDims = 10;
+% trueNumDimsPerGroup = 3;
+% numDimsPerGroupCands = [1 3 5 10]';
+% 
+% numDims = 24;
+% trueNumDimsPerGroup = 6;
+% numDimsPerGroupCands = [1 4 6 12]';
+% 
+numDims = 40;
+trueNumDimsPerGroup = 18;
+numDimsPerGroupCands = [1 4 10 20]';
+
 numdCands = numel(numDimsPerGroupCands);
 
-uTest = true;
+uTest = false;
 
 if ~uTest
   % Fixed experiment parameters
@@ -166,7 +175,7 @@ for expIter = 1:numExperiments
       'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
       'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
       'randSimpleRegrets', 'randCumRegrets', ...
-      'numDimsPerGroupCands', choosedM);
+      'numDimsPerGroupCands', 'choosedM');
   end
 
 end
