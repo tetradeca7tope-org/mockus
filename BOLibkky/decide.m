@@ -240,7 +240,8 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(o
         end
 
         % update the (d,M) posterior
-        dMposterior = dMposterior + 1 ./ mllHolder';
+        % since it's the negative mll, so negative negative gives positive
+        dMposterior = dMposterior - mllHolder';
 
         % How to choose the next (d,M) pair
         switch params.choosedM
