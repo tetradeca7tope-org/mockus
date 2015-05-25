@@ -1,7 +1,10 @@
 % assume the data is already loaded
+
+AVG = false;
+
 numExps = size(boUDCumRegrets,1)
 totalPts = size(boUDCumRegrets,2);
-NUM_SHOW = totalPts / 4;
+NUM_SHOW = totalPts / 40;
 allIters = (1:totalPts);
 
 notRandLines = numel(numDimsPerGroupCands) + numel(choosedM);
@@ -16,14 +19,18 @@ mksUD = {'o','p','h'};
 labels = cell(notRandLines+1,1);
 qqq = round(linspace(1,totalNumQueries, NUM_SHOW));
 
-boAddSimpleRegrets = mean(boAddSimpleRegrets,1);
+if AVG
+  boAddSimpleRegrets = mean(boAddSimpleRegrets,1);
+end
 for i=1:numel(numDimsPerGroupCands)
   semilogy(allIters(qqq), boAddSimpleRegrets(1,qqq,i),'color',clsAdd(i,:),'Marker',mksAdd{i});
   labels{i} = sprintf('Add-d = %d',numDimsPerGroupCands(i));
   hold on
 end
 
-boUDSimpleRegrets = mean(boUDSimpleRegrets,1);
+if AVG
+  boUDSimpleRegrets = mean(boUDSimpleRegrets,1);
+end
 for i=1:numel(choosedM)
   semilogy(allIters(qqq),boUDSimpleRegrets(1,qqq,i),'color', clsUD(i,:),'Marker', mksUD{i});
   labels{numel(numDimsPerGroupCands)+i} = choosedM{i};
