@@ -13,27 +13,38 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
-% numDims = 10;
-% trueNumDimsPerGroup = 3;
-% numDimsPerGroupCands = [1 3 5 10]';
-% 
-% numDims = 24;
-% trueNumDimsPerGroup = 6;
-% numDimsPerGroupCands = [1 4 6 12]';
-% 
-numDims = 40;
-trueNumDimsPerGroup = 18;
-numDimsPerGroupCands = [1 4 10 20]';
+trial = 0;
 
+switch trial
+  case 1
+    numDims = 10;
+    trueNumDimsPerGroup = 3;
+    numDimsPerGroupCands = [1 3 5 10]';
+  case 2 
+    numDims = 24;
+    trueNumDimsPerGroup = 12;
+    numDimsPerGroupCands = [1 4 6 12 24]';
+  case 3
+    numDims = 40;
+    trueNumDimsPerGroup = 18;
+    numDimsPerGroupCands = [1 4 10 20 40]';
+  case 96
+    numDims = 96;
+    trueNumDimsPerGroup = 29;
+    numDimsPerGroupCands = [4 8 16 32 96]';
+  otherwise
+end
 numdCands = numel(numDimsPerGroupCands);
 
 uTest = false;
+% uTest = true;
 
 if ~uTest
   % Fixed experiment parameters
   numExperiments = 3;
-  numDiRectEvals = 500;
-  numIters = 300;
+  % numDiRectEvals = 500;
+  numDiRectEvals = min(5000, max(100*numDims, 500));
+  numIters = 830;
 else
   % Unit text experiment parameters
   numExperiments = 1;
@@ -167,7 +178,7 @@ for expIter = 1:numExperiments
 
 
   % Save Results at each iteration
-  % if ~uTest
+  if ~uTest
     save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
       'funcProperties', 'trueMaxVal',  ...
       'numIters', 'totalNumQueries', ...
@@ -176,5 +187,5 @@ for expIter = 1:numExperiments
       'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
       'randSimpleRegrets', 'randCumRegrets', ...
       'numDimsPerGroupCands', 'choosedM');
-  % end
+  end
 end
