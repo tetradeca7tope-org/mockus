@@ -48,9 +48,9 @@ end
 
 P = P(:) ;
 
-if any(P<0),
-    error('All probabilities should be 0 or larger.') ;
-end
+% if any(P<0),
+%     error('All probabilities should be 0 or larger.') ;
+% end
 
 if isempty(P) || sum(P)==0
     warning([mfilename ':ZeroProbabilities'],'All zero probabilities') ;
