@@ -13,7 +13,9 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
-trial = 0;
+trial = 4;
+uTest = false;
+% uTest = true;
 
 switch trial
   case 1
@@ -40,14 +42,11 @@ switch trial
 end
 numdCands = numel(numDimsPerGroupCands);
 
-uTest = false;
-% uTest = true;
-
 if ~uTest
   % Fixed experiment parameters
   numExperiments = 3;
   % numDiRectEvals = 500;
-  numDiRectEvals = min(5000, max(100*numDims, 500));
+  numDiRectEvals = min(5000, max(40*numDims, 500));
   numIters = 830;
 else
   % Unit text experiment parameters
@@ -157,9 +156,9 @@ for expIter = 1:numExperiments
   end
 
 
-  % Decomposition varies across iterations
-  fprintf('\nChoose the decomposition\n');
+  % Decomposition varies across iterations  
   for iter=1:numChoosedM
+    fprintf('\nChoose the decomposition\n');
     boUDParams.choosedM = choosedM{iter};
 
     [~, ~, ~, valHistDecide] = ...
