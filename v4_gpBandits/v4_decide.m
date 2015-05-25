@@ -28,10 +28,14 @@ switch trial
     numDims = 40;
     trueNumDimsPerGroup = 18;
     numDimsPerGroupCands = [1 4 10 20 40]';
-  case 96
+  case 4
     numDims = 96;
     trueNumDimsPerGroup = 29;
     numDimsPerGroupCands = [4 8 16 32 96]';
+  case 5
+    numDims = 120;
+    trueNumDimsPerGroup = 55;
+    numDimsPerGroupCands = [8 15 30 55 120]';
   otherwise
 end
 numdCands = numel(numDimsPerGroupCands);
