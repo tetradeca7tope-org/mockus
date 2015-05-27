@@ -13,7 +13,7 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
-trial = 4;
+trial = 2;
 uTest = false;
 % uTest = true;
 
@@ -45,8 +45,9 @@ numdCands = numel(numDimsPerGroupCands);
 if ~uTest
   % Fixed experiment parameters
   numExperiments = 3;
-  % numDiRectEvals = 500;
-  numDiRectEvals = min(5000, max(40*numDims, 500));
+  numDiRectEvals = 500;
+  % numDiRectEvals = min(5000, max(100*numDims, 500));
+  % numDiRectEvals = min(5000, max(40*numDims, 500));
   numIters = 830;
 else
   % Unit text experiment parameters
