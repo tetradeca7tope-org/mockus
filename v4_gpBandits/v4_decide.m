@@ -18,9 +18,6 @@ trial = 2;
 uTest = false;
 % uTest = true;
 
-
-
-
 switch trial
   case 1
     numDims = 10;
@@ -49,12 +46,6 @@ switch trial
   otherwise
 end
 numdCands = numel(numDimsPerGroupCands);
-
-
-
-% uTest = false;
-uTest = true;
-
 
 if ~uTest
   % Fixed experiment parameters
