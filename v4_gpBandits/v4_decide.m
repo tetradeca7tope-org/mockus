@@ -31,10 +31,14 @@ switch trial
     trueNumDimsPerGroup = 18;
     numDimsPerGroupCands = [1 4 10 20 40]';
   case 4
+    numDims = 60;
+    trueNumDimsPerGroup = 25;
+    numDimsPerGroupCands = [1 6 10 25 60]';
+  case 5
     numDims = 96;
     trueNumDimsPerGroup = 29;
     numDimsPerGroupCands = [4 8 16 32 96]';
-  case 5
+  case 6
     numDims = 120;
     trueNumDimsPerGroup = 55;
     numDimsPerGroupCands = [8 15 30 55 120]';
@@ -44,10 +48,11 @@ numdCands = numel(numDimsPerGroupCands);
 
 if ~uTest
   % Fixed experiment parameters
-  numExperiments = 3;
-  numDiRectEvals = 500;
+  % numExperiments = 3;
+  numExperiments = 20;
+  % numDiRectEvals = 500;
   % numDiRectEvals = min(5000, max(100*numDims, 500));
-  % numDiRectEvals = min(5000, max(40*numDims, 500));
+  numDiRectEvals = min(5000, max(40*numDims, 500));
   numIters = 830;
 else
   % Unit text experiment parameters
