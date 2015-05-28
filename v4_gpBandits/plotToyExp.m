@@ -1,6 +1,6 @@
 % assume the data is already loaded
 
-AVG = false;
+AVG = 2;
 
 numExps = size(boUDCumRegrets,1)
 totalPts = size(boUDCumRegrets,2);
@@ -16,11 +16,11 @@ clsUD = cls(end-numel(choosedM)+1:end,:);
 mksAdd = {'^','v','<','>','.'};
 mksUD = {'o','p','h'};
 
-labels = cell(notRandLines+1,1);
+labels = cell(notRandLines,1);
 qqq = round(linspace(1,totalNumQueries, NUM_SHOW));
 
 if AVG
-  boAddSimpleRegrets = mean(boAddSimpleRegrets,1);
+  boAddSimpleRegrets = mean(boAddSimpleRegrets(1:AVG,:,:),1);
 end
 for i=1:numel(numDimsPerGroupCands)
   semilogy(allIters(qqq), boAddSimpleRegrets(1,qqq,i),'color',clsAdd(i,:),'Marker',mksAdd{i});
@@ -29,17 +29,22 @@ for i=1:numel(numDimsPerGroupCands)
 end
 
 if AVG
-  boUDSimpleRegrets = mean(boUDSimpleRegrets,1);
+  boUDSimpleRegrets = mean(boUDSimpleRegrets(1:AVG,:,:),1);
 end
+strat = cell(3,1);
+strat{1} = 'Maximum marginal likelihood';
+strat{2} = 'Sampling from marginal likelihood';
+strat{3} = 'Sampling uniformly at random';
+
 for i=1:numel(choosedM)
   semilogy(allIters(qqq),boUDSimpleRegrets(1,qqq,i),'color', clsUD(i,:),'Marker', mksUD{i});
-  labels{numel(numDimsPerGroupCands)+i} = choosedM{i};
+  labels{numel(numDimsPerGroupCands)+i} = strat{i};
   hold on
 end
 
-randSimpleRegrets = mean(randSimpleRegrets,1);
-semilogy(allIters(qqq),randSimpleRegrets(1,qqq),'color','red','Marker','+');
-labels{end} = sprintf('Random');
+% randSimpleRegrets = mean(randSimpleRegrets,1);
+% semilogy(allIters(qqq),randSimpleRegrets(1,qqq),'color',[0.4,0.4,0.4],'Marker','+');
+% labels{end} = sprintf('Random');
 
 legend(labels, 'FontSize',12,'Location','northeast');
 ylabel('Simple Regrets','FontSize',12);

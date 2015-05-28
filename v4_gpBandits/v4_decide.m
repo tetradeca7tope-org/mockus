@@ -13,9 +13,13 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
+
 trial = 2;
 uTest = false;
 % uTest = true;
+
+
+
 
 switch trial
   case 1
@@ -45,6 +49,12 @@ switch trial
   otherwise
 end
 numdCands = numel(numDimsPerGroupCands);
+
+
+
+% uTest = false;
+uTest = true;
+
 
 if ~uTest
   % Fixed experiment parameters
