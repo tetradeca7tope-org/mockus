@@ -39,7 +39,7 @@ function X = randp(P,varargin) ;
 error(nargchk(2,Inf,nargin)) ;
 
 try
-    X = rand(varargin{:}) ;
+    X = rand(varargin{:}) ; 
 catch
     E = lasterror ;
     E.message = strrep(E.message,'rand','randp') ;
@@ -48,9 +48,9 @@ end
 
 P = P(:) ;
 
-% if any(P<0),
-%     error('All probabilities should be 0 or larger.') ;
-% end
+if any(P<0),
+    error('All probabilities should be 0 or larger.') ;
+end
 
 if isempty(P) || sum(P)==0
     warning([mfilename ':ZeroProbabilities'],'All zero probabilities') ;

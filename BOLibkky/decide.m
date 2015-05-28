@@ -238,11 +238,11 @@ function [maxVal, maxPt, boQueries, boVals, history, MHist, ptHolder] = decide(o
           learnedDecompHolder{i} = learnedDecomp;
           mllHolder(i) = mll;
         end
-
+        
         % update the (d,M) posterior
-        % since it's the negative mll, so negative negative gives positive
-        dMposterior = dMposterior - mllHolder';
-
+        cap = max(mllHolder);
+        dMposterior = dMposterior + cap - mllHolder';
+        
         % How to choose the next (d,M) pair
         switch params.choosedM
           case CHOOSEdM_MLL
