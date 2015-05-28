@@ -13,7 +13,9 @@ addpath ../utils/
 warning off;
 
 % Problem parameters
-trial = 0;
+trial = 2;
+uTest = false;
+% uTest = true;
 
 switch trial
   case 1
@@ -29,10 +31,14 @@ switch trial
     trueNumDimsPerGroup = 18;
     numDimsPerGroupCands = [1 4 10 20 40]';
   case 4
+    numDims = 60;
+    trueNumDimsPerGroup = 25;
+    numDimsPerGroupCands = [1 6 10 25 60]';
+  case 5
     numDims = 96;
     trueNumDimsPerGroup = 29;
     numDimsPerGroupCands = [4 8 16 32 96]';
-  case 5
+  case 6
     numDims = 120;
     trueNumDimsPerGroup = 55;
     numDimsPerGroupCands = [8 15 30 55 120]';
@@ -40,14 +46,13 @@ switch trial
 end
 numdCands = numel(numDimsPerGroupCands);
 
-uTest = false;
-% uTest = true;
-
 if ~uTest
   % Fixed experiment parameters
-  numExperiments = 3;
+  % numExperiments = 3;
+  numExperiments = 20;
   % numDiRectEvals = 500;
-  numDiRectEvals = min(5000, max(100*numDims, 500));
+  % numDiRectEvals = min(5000, max(100*numDims, 500));
+  numDiRectEvals = min(5000, max(40*numDims, 500));
   numIters = 830;
 else
   % Unit text experiment parameters
@@ -157,9 +162,9 @@ for expIter = 1:numExperiments
   end
 
 
-  % Decomposition varies across iterations
-  fprintf('\nChoose the decomposition\n');
+  % Decomposition varies across iterations  
   for iter=1:numChoosedM
+    fprintf('\nChoose the decomposition\n');
     boUDParams.choosedM = choosedM{iter};
 
     [~, ~, ~, valHistDecide] = ...
