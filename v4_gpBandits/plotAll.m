@@ -1,6 +1,7 @@
 
 clear all;
 dirName = 'resultsJan15';
+dirName = 'resultsFeb26';
 dirSearchName = sprintf('%s/*.mat', dirName);
 files = dir(dirSearchName);
 

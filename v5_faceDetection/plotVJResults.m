@@ -65,7 +65,7 @@ for regIter = 1:1
 
   % First plot the nominal value
   figure;
-  plotFunc([0 totalNumQueries], [88.4 88.4], 'b--');
+  plotFunc([0 totalNumQueries], [86.7 86.7], 'b--');
   hold on,
 
   % Plot Iteration statistics

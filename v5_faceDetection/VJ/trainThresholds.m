@@ -16,6 +16,8 @@ function [score, acc] = trainThresholds(XTrain, YTrain, HaarCascade, thresholds)
   for i = 1:numTrain
     objs = ObjectDetection( XTrain(:,:,i), HaarCascade, Options, thresholds);
     predicts(i) = ~isempty(objs); 
+%     objs, predicts(i),
+%     pause,
   end
   
   acc = sum(predicts == YTrain)/numTrain;
