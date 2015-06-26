@@ -3,34 +3,64 @@
 close all;
 clear all;
 LIBPATH = '~/libs/kky-matlab/';
-addpath([LIBPATH 'utils']); 
-addpath([LIBPATH 'ancillary']); 
-addpath([LIBPATH 'GPLibkky']); 
+addpath([LIBPATH 'utils']);
+addpath([LIBPATH 'ancillary']);
+addpath([LIBPATH 'GPLibkky']);
 addpath ../BOLibkky/
 addpath ../addGPLibkky/
 addpath ../utils/
 
 warning off;
 
+% Problem parameters
+
+trial = 2;
 uTest = false;
+% uTest = true;
+
+switch trial
+  case 1
+    numDims = 10;
+    trueNumDimsPerGroup = 3;
+    numDimsPerGroupCands = [1 3 5 10]';
+  case 2 
+    numDims = 24;
+    trueNumDimsPerGroup = 12;
+    numDimsPerGroupCands = [1 4 6 12 24]';
+  case 3
+    numDims = 40;
+    trueNumDimsPerGroup = 18;
+    numDimsPerGroupCands = [1 4 10 20 40]';
+  case 4
+    numDims = 60;
+    trueNumDimsPerGroup = 25;
+    numDimsPerGroupCands = [1 6 10 25 60]';
+  case 5
+    numDims = 96;
+    trueNumDimsPerGroup = 29;
+    numDimsPerGroupCands = [4 8 16 32 96]';
+  case 6
+    numDims = 120;
+    trueNumDimsPerGroup = 55;
+    numDimsPerGroupCands = [8 15 30 55 120]';
+  otherwise
+end
+numdCands = numel(numDimsPerGroupCands);
 
 if ~uTest
-% Fixed experiment parameters
-numExperiments = 3;
-numDiRectEvals = 500;
-numIters = 300;
+  % Fixed experiment parameters
+  % numExperiments = 3;
+  numExperiments = 20;
+  % numDiRectEvals = 500;
+  % numDiRectEvals = min(5000, max(100*numDims, 500));
+  numDiRectEvals = min(5000, max(40*numDims, 500));
+  numIters = 830;
 else
-% Unit text experiment parameters
-numExperiments = 3;
-numDiRectEvals = 50;
-numIters = 70;
+  % Unit text experiment parameters
+  numExperiments = 1;
+  numDiRectEvals = 5;
+  numIters = 10;
 end
-
-% Problem parameters
-numDims = 6;
-trueNumDimsPerGroup = 2;
-numDimsPerGroupCands = [1 2 3 6]';
-numdCands = numel(numDimsPerGroupCands);
 
 % Get the function
 [func, funcProperties] = getAdditiveFunction(numDims, trueNumDimsPerGroup);
@@ -54,7 +84,7 @@ stdFth = std(fth);
 boParams.optPtStdThreshold = 0.002;
 boParams.alBWLB = 1e-5;
 boParams.alBWUB = 5;
-boParams.numInitPts = 10; 
+boParams.numInitPts = 10;
 % use the same initialization points
 boParams.initPts = rand(boParams.numInitPts, numDims);
 boParams.initVals = func(boParams.initPts);
@@ -80,19 +110,22 @@ boAddParams.decompStrategy = 'partialLearn';
 
 boUDParams = boParams;
 boUDParams.decompStrategy = 'decide';
+choosedM = {'mll', 'sample', 'rand'};
+numChoosedM = numel(choosedM);
 
 % Initialize arrays for storing the history
 boAddHistories = zeros(numExperiments, totalNumQueries, numdCands);
-boUDHistories = zeros(numExperiments, totalNumQueries);
+boUDHistories = zeros(numExperiments, totalNumQueries, numChoosedM);
 
 % For storing simple regret values
 boAddSimpleRegrets = zeros(numExperiments, totalNumQueries, numdCands);
-boUDSimpleRegrets = zeros(numExperiments, totalNumQueries);
-
+boUDSimpleRegrets = zeros(numExperiments, totalNumQueries, numChoosedM);
+randSimpleRegrets = zeros(numExperiments, totalNumQueries);
 % For storing cumulative regret values
 boAddCumRegrets = zeros(numExperiments, totalNumQueries, numdCands);
-boUDCumRegrets = zeros(numExperiments, totalNumQueries);
-dMHistAll = []; 
+boUDCumRegrets = zeros(numExperiments, totalNumQueries, numChoosedM);
+randCumRegrets = zeros(numExperiments, totalNumQueries);
+MHistAll = [];
 ptAll = [];
 
 
@@ -126,38 +159,43 @@ for expIter = 1:numExperiments
     [sR, cR] = getRegrets(trueMaxVal, valHistAdd);
     boAddHistories(expIter, :, candIter) = valHistAdd';
     boAddSimpleRegrets(expIter, :, candIter) = sR';
-    boAddCumRegrets(expIter, :, candIter) = cR'; 
+    boAddCumRegrets(expIter, :, candIter) = cR';
   end
 
-  
-  % Decomposition varies across iterations
-  fprintf('\nChoose the decomposition\n');
-  
-  % How to choose (d,M) pairs
-  % boUDParams.choosedM = 'maxMll';
-  % boUDParams.choosedM = 'inOrder';
-  % boUDParams.choosedM = 'normalize';
-  % boUDParams.choosedM = 'maxVal';
-  % boUDParams.choosedM = 'fixed';
 
-  [~, ~, ~, valHistDecide,~, dMHist, ptHolder] = ...
-      decide(func, decomp, bounds, numIters, boUDParams); 
-  dMHistAll = [dMHistAll; dMHist];
-  ptAll(expIter,:,:) = ptHolder;
+  % Decomposition varies across iterations  
+  for iter=1:numChoosedM
+    fprintf('\nChoose the decomposition\n');
+    boUDParams.choosedM = choosedM{iter};
 
-  [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
-  
-  boUDHistories(expIter, :) = valHistDecide';
-  boUDSimpleRegrets(expIter, :) = sR';
-  boUDCumRegrets(expIter, :) = cR';
+    [~, ~, ~, valHistDecide] = ...
+      decide(func, decomp, bounds, numIters, boUDParams);
 
- % Save Results at each iteration
-  save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
-    'funcProperties', 'trueMaxVal',  ...
-    'numIters', 'totalNumQueries', ...
-    'boAddHistories', 'boUDHistories', ...
-    'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
-    'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
-    'numDimsPerGroupCands', 'dMHistAll','ptAll');
+    [sR, cR] = getRegrets(trueMaxVal, valHistDecide);
+    boUDHistories(expIter, :, iter) = valHistDecide';
+    boUDSimpleRegrets(expIter, :, iter) = sR';
+    boUDCumRegrets(expIter, :, iter) = cR';
+  end
 
+  fprintf('\nRandom optimization\n');
+  randQueries = bsxfun(@plus, ...
+    bsxfun(@times, rand(totalNumQueries, numDims), ...
+    (bounds(:,2) - bounds(:,1))' ), bounds(:,1)' );
+  randHistories(expIter, :) = func(randQueries)';
+  [sR, cR] = getRegrets(trueMaxVal, randHistories(expIter, :)');
+  randSimpleRegrets(expIter, :) = sR';
+  randCumRegrets(expIter, :) = cR';
+
+
+  % Save Results at each iteration
+  if ~uTest
+    save(saveFileName, 'numDims', 'trueNumDimsPerGroup', 'func', ...
+      'funcProperties', 'trueMaxVal',  ...
+      'numIters', 'totalNumQueries', ...
+      'boAddHistories', 'boUDHistories', ...
+      'boAddSimpleRegrets', 'boUDSimpleRegrets', ...
+      'boAddCumRegrets', 'boUDCumRegrets', 'boUDParams', ...
+      'randSimpleRegrets', 'randCumRegrets', ...
+      'numDimsPerGroupCands', 'choosedM');
+  end
 end

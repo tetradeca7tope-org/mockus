@@ -12,6 +12,7 @@ for i=1:numE
   figure(i)
   for j = 1:numD
       plot([1:numI],boAddCumRewards(i,:,j),'Marker','+','color',cc(j,:));
+      % plot([1:numI],boAddMaxVals(i,:,j),'Marker','+','color',cc(j,:));
       labels{j} = sprintf('d = %d',numDimsPerGroupCands(j));
       hold on
   end
