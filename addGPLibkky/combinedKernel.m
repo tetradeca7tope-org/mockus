@@ -11,5 +11,5 @@ function K = combinedKernel(X1, X2, decomposition, bws, scales)
     K = K + augKernel(X1, X2, coords, bw, scale);
   end
   % account for scaling effects due to multiple kernels
-  K = K / numGroups;
+%   K = K / numGroups;
 end

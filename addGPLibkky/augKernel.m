@@ -14,6 +14,6 @@ function K = augKernel(X1, X2, coords, bw, scale)
   end
 
   D = Dist2GP(X1sub, X2sub);
-  K = scale * exp(-0.5D/bw^2);
+  K = scale * exp(-0.5 * D/bw^2);
 end
 

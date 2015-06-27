@@ -14,12 +14,13 @@ func = @(t) - 70*(t-0).* (t-0.35).* (t+0.55).* (t-0.65).* (t-0.98);
 LW = 3;
 MS = 20;
 LWS = 1.5;
-FS = 18;
+FS = 25;
 
 plotlims = [0 1 -0.6 1.30];
 yLabPosn = [-0.05 1.20];
 xLabPosn = [0.95 -0.68];
-figSize = [830 375 775 420];
+figSize = [85 261 898 420];
+saveFormat = 'eps';
 
 c1 = [150 75 0]/255;
 c2 = 'r';
@@ -35,13 +36,14 @@ set(gca, 'Ytick', []);
 set(gca, 'Xtick', []);
 text(maxPt - 0.05, -0.55, '$x_*$', 'FontSize', FS, ...
   'Interpreter', 'Latex');
-text(maxPt - 0.10, maxVal + 0.05, '$f(x_*)$', 'FontSize', FS,  ...
+text(maxPt - 0.12, maxVal + 0.05, '$f(x_*)$', 'FontSize', 22,  ...
   'Interpreter', 'Latex');
 axis(plotlims);
 xlabel('$x$', 'Position', xLabPosn, 'FontSize', FS, 'Interpreter', 'Latex');
 ylabel('$f(x)$', 'rot', 0, 'Position', yLabPosn, 'FontSize', FS, ...
   'Interpreter', 'Latex');
 set(gcf, 'Position', figSize);
+% saveas(gcf, 'func', saveFormat);
 % ylabh = get(gca, 'YLabel');
 % set(ylabh,'Position',get(ylabh,'Position') - [0.2 0])
 
@@ -69,6 +71,7 @@ ylabel('$f(x)$', 'rot', 0, 'Position', yLabPosn, 'FontSize', FS, ...
 % set(gca, 'Xtick', []);
 set(gca, 'Ytick', []);
 set(gcf, 'Position', figSize);
+% saveas(gcf, 'funcPts', saveFormat);
 
 
 
@@ -96,6 +99,7 @@ xlabel('$x$', 'Position', xLabPosn, 'FontSize', FS, 'Interpreter', 'Latex');
 ylabel('$f(x)$', 'rot', 0, 'Position', yLabPosn, 'FontSize', FS, ...
   'Interpreter', 'Latex');
 set(gcf, 'Position', figSize);
+% saveas(gcf, 'gpPost', saveFormat);
 
 
 
@@ -111,8 +115,8 @@ plot(th(maxIdx), maxVal, 'r*', 'MarkerSize', MS, 'LineWidth', LW);
 plot([th(maxIdx), th(maxIdx)], [-0.5 maxVal], 'r');
 th(maxIdx),
 
-text(th(maxIdx) - 0.23, maxVal + 0.025, ...
-'${\bf{x_{t+1}}} = 0.828$', 'Interpreter', 'Latex', 'FontSize', 18);
+text(th(maxIdx) - 0.25, maxVal + 0.025, ...
+'${\bf{x_{t}}} = 0.828$', 'Interpreter', 'Latex', 'FontSize', FS);
 
 % set(gca, 'Xtick', []);
 set(gca, 'Ytick', []);
@@ -122,4 +126,5 @@ xlabel('$x$', 'Position', [0.95 -0.60], 'FontSize', FS, 'Interpreter','Latex');
 ylabel('$\varphi_t(x)$', 'Interpreter', 'Latex', ...
    'rot', 0, 'Position', [-0.05 1], 'FontSize', FS);
 set(gcf, 'Position', figSize);
+% saveas(gcf, 'ucb', saveFormat);
 
