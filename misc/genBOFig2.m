@@ -14,7 +14,7 @@ func = @(t) - 70*(t-0).* (t-0.35).* (t+0.55).* (t-0.65).* (t-0.98);
 LW = 3;
 MS = 20;
 LWS = 1.5;
-FS = 25;
+FS = 26;
 
 plotlims = [0 1 -0.6 1.30];
 yLabPosn = [-0.05 1.20];
@@ -34,7 +34,7 @@ plot(maxPt, maxVal, 'r*', 'MarkerSize', MS, 'LineWidth', LW);
 plot([maxPt, maxPt], [-0.6 maxVal], 'r--', 'LineWidth', 2);
 set(gca, 'Ytick', []);
 set(gca, 'Xtick', []);
-text(maxPt - 0.05, -0.55, '$x_*$', 'FontSize', FS, ...
+text(maxPt - 0.05, -0.52, '$x_*$', 'FontSize', FS, ...
   'Interpreter', 'Latex');
 text(maxPt - 0.12, maxVal + 0.05, '$f(x_*)$', 'FontSize', 22,  ...
   'Interpreter', 'Latex');
@@ -115,8 +115,9 @@ plot(th(maxIdx), maxVal, 'r*', 'MarkerSize', MS, 'LineWidth', LW);
 plot([th(maxIdx), th(maxIdx)], [-0.5 maxVal], 'r');
 th(maxIdx),
 
-text(th(maxIdx) - 0.25, maxVal + 0.025, ...
-'${\bf{x_{t}}} = 0.828$', 'Interpreter', 'Latex', 'FontSize', FS);
+text(0.6, -0.32, ...
+'${\bf{x_{t}}} = 0.828$', 'Color', 'r', 'Interpreter', 'Latex', ...
+  'FontSize', FS);
 
 % set(gca, 'Xtick', []);
 set(gca, 'Ytick', []);

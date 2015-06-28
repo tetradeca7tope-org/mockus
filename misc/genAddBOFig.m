@@ -21,9 +21,9 @@ c1 = [150 75 0]/255;
 c2 = 'r';
 
 LW = 3;
-MS = 20;
+MS = 25;
 LWS = 1.5;
-FS = 22;
+FS = 25;
 
 plotlims1 = [0 1 -0.6 1.50];
 plotlims2 = [0 1 -0.6 1.90];
@@ -60,7 +60,7 @@ axis(plotlims2);
 xlabel('$x_{\{2\}}$', 'Position', xLabPosn, 'FontSize', FS, 'Interpreter', 'Latex');
 % ylabel('$f^{(2)}(x_{\{2\}})$', 'rot', 0, 'Position', yLabPosn2, 'FontSize', FS, ...
 %   'Interpreter', 'Latex');
-text(0.6, 1.0, '$f^{(2)}(x_{\{2\}})$', 'FontSize', FS, ...
+text(0.6, 1.1, '$f^{(2)}(x_{\{2\}})$', 'FontSize', FS, ...
   'Interpreter', 'Latex');
 set(gcf, 'Position', figSize);
 % saveas(gcf, 'add2', saveFormat);
@@ -128,7 +128,7 @@ ucb1 = mu1 + betath * std1 + 0.3;
 plot(th, ucb1, 'Color', 'b', 'LineWidth', LW); hold on;
 plot(maxTh1, maxVal1, 'r*', 'MarkerSize', MS, 'LineWidth', LW);
 plot([maxTh1, maxTh1], [-0.7 maxVal1], 'r');
-text(th(maxIdx1) - 0.25, maxVal1 - 0.01, '${\bf x^{(1)}_{t}} = 0.869$', ...
+text(th(maxIdx1) - 0.27, -0.4, '${\bf x^{(1)}_{t}}= 0.869$', ...
   'Color', 'r', 'FontSize', FS, 'Interpreter', 'Latex');
 axis(plotlims1);
 xlabel('$x_{\{1\}}$', 'Position', xLabPosn, 'FontSize', FS, ...
@@ -147,14 +147,14 @@ ucb2 = mu2 + betath * std2 + 0.5;
 plot(th, ucb2, 'Color', 'b', 'LineWidth', LW); hold on;
 plot(maxTh2, maxVal2, 'r*', 'MarkerSize', MS, 'LineWidth', LW);
 plot([maxTh2, maxTh2], [-0.7 maxVal2], 'r');
-text(th(maxIdx2) + 0.04, maxVal2 + 0.02, ...
-  '${\bf x^{(2)}_{t}} = 0.141$', 'Interpreter', 'Latex', ...
+text(th(maxIdx2) + 0.01, -0.4, ...
+  '${\bf x^{(2)}_{t}}=0.141$', 'Interpreter', 'Latex', ...
   'FontSize', FS, 'Color', 'r');
 axis(plotlims2);
 xlabel('$x_{\{2\}}$', 'Position', xLabPosn, 'FontSize', FS, 'Interpreter', 'Latex');
 % ylabel('$\tilde{\varphi}^{(2)}(x_{\{2\}})$', 'rot', 0, 'Position', ...
 %   yLabPosn2, 'FontSize', FS, 'Interpreter', 'Latex');
-text(0.6, 1.2, '$\tilde{\varphi}^{(2)}(x_{\{2\}})$', 'FontSize', FS, ...
+text(0.6, 1.4, '$\tilde{\varphi}^{(2)}(x_{\{2\}})$', 'FontSize', FS, ...
   'Interpreter', 'Latex', 'Color', 'b');
 set(gcf, 'Position', figSize);
 set(gca, 'Ytick', []);
@@ -164,8 +164,8 @@ figure;
 plot2DFunction(func, [0 1; 0 1], 'contour'); hold on,
 plot(X(plotIdxs, 1), X(plotIdxs, 2), 'kx', 'MarkerSize', MS, 'LineWidth', LW);
 plot(maxTh1, maxTh2, 'r*', 'MarkerSize', MS, 'LineWidth', LW);
-text(0.6, 0.175, '${\bf{x_{t}}} = (0.869,0.141)$', 'Interpreter', 'Latex', ...
-  'FontSize', FS, 'Color', 'r');
+text(0.52, 0.185, '${\bf{x_{t}}} = (0.869,0.141)$', 'Interpreter', 'Latex', ...
+  'FontSize', 30, 'Color', 'r');
 set(gcf, 'Position', figSizeSq);
 set(gca, 'Ytick', []);
 set(gca, 'Xtick', []);
