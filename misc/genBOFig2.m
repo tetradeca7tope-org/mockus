@@ -12,7 +12,7 @@ func = @(t) - 70*(t-0).* (t-0.35).* (t+0.55).* (t-0.65).* (t-0.98);
 
 
 LW = 3;
-MS = 20;
+MS = 25;
 LWS = 1.5;
 FS = 26;
 
@@ -30,7 +30,7 @@ th = linspace(0,1,100)';
 [maxVal, maxIdx] = max(func(th));
 maxPt = th(maxIdx);
 plot(th, func(th), 'LineWidth', LW, 'Color', 'k'); hold on,
-plot(maxPt, maxVal, 'r*', 'MarkerSize', MS, 'LineWidth', LW);
+plot(maxPt, maxVal, 'r*', 'MarkerSize', MS, 'LineWidth', 1.5*LW);
 plot([maxPt, maxPt], [-0.6 maxVal], 'r--', 'LineWidth', 2);
 set(gca, 'Ytick', []);
 set(gca, 'Xtick', []);
@@ -62,7 +62,7 @@ X = [0.1 0.4 0.55 0.78 0.95]';
 % X = [0.1 0.4 0.70 0.80 0.95]';
 % X = [0.1 0.4 0.6 0.8 0.98]';
 Y = func(X);
-plot(X, Y, 'kx', 'MarkerSize', MS, 'LineWidth', LW);
+plot(X, Y, 'kx', 'MarkerSize', MS, 'LineWidth', 1.5*LW);
 axis(plotlims);
 xlabel('$x$', 'Position', xLabPosn, 'FontSize', FS, 'Interpreter', 'Latex');
 ylabel('$f(x)$', 'rot', 0, 'Position', yLabPosn, 'FontSize', FS, ...
@@ -89,7 +89,7 @@ plot(th, func(th), 'LineWidth', LW, 'Color', 'k'); hold on,
 [mu, K, funcH] = GPMargLikelihood(X, Y, th, hyperparams);
 gpSamples = GPDrawSamples(mu, K, numSamples);
 plot(th, gpSamples, 'LineWidth', LWS);
-plot(X, Y, 'kx', 'MarkerSize', MS, 'LineWidth', LW);
+plot(X, Y, 'kx', 'MarkerSize', MS, 'LineWidth', 1.5*LW);
 
 % set(gca, 'Xtick', []);
 set(gca, 'Ytick', []);
@@ -111,7 +111,7 @@ ucb = mu + betath * diag(K);
 plot(th, ucb, 'Color', 'b', 'LineWidth', LW);
 hold on;
 [maxVal, maxIdx] = max(ucb);
-plot(th(maxIdx), maxVal, 'r*', 'MarkerSize', MS, 'LineWidth', LW);
+plot(th(maxIdx), maxVal, 'r*', 'MarkerSize', MS, 'LineWidth', 1.5*LW);
 plot([th(maxIdx), th(maxIdx)], [-0.5 maxVal], 'r');
 th(maxIdx),
 
