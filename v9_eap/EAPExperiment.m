@@ -54,11 +54,10 @@ classdef EAPExperiment < handle
       obj.luasDir = 'luas/';
       obj.resultsDir = sprintf('%sresults/', obj.eapDir);
       obj.runsDir = sprintf('%sruns/', obj.eapDir);
-      obj.mcFile = sprintf('%sind000000000a%02d.out', obj.runsDir, numAntennas);
 
       % Set based on number of antennas
       if ~exist('settingIdx', 'var')
-        settingIdx = 6;
+        settingIdx = 5;
       end
       obj.settingIdx = settingIdx;
       obj.setting = obj.allSettings{settingIdx};
@@ -70,6 +69,7 @@ classdef EAPExperiment < handle
       obj.numDims = 3 * numAntennas;
       obj.problemSpaceBounds = obj.antennaSpaceBounds(1:3*numAntennas, :);
       obj.bounds = repmat([0 1], obj.numDims);
+      obj.mcFile = sprintf('%sind000000000a%02d.out', obj.runsDir, numAntennas);
 
     end
 
@@ -113,7 +113,7 @@ classdef EAPExperiment < handle
     function success = runSimulator(obj, evalPt)
 
       % First write antenna locations to file
-      luaFileStr = sprintf('load_platform(\"%s\")\n', obj.setting);
+      luaFileStr = sprintf('load_platform(\"input/%s\")\n', obj.setting);
       for i = 1:obj.numAntennas
         currStr = sprintf(['add_antenna(\"input/%s\")\n', ...
           'add_point( %0.7f, %0.7f, %0.7f )\n'], ...
@@ -127,8 +127,11 @@ classdef EAPExperiment < handle
       fprintf(inFile, luaFileStr);
 
       % Now execute the simulator
-      commandStr = sprintf('cd sim && ./%s -i %sin.lua && cd ..', ...
+      commandStr = sprintf(...
+        ['export LD_LIBRARY_PATH="/usr/lib/gcc/x86_64-linux-gnu/4.8" ; ', ...
+        'cd sim && ./%s -i %sin.lua && cd ..'], ...
         obj.binName, obj.luasDir);
+      commandStr,
       success = ~system(commandStr);
 
       success = 1;
@@ -183,8 +186,6 @@ classdef EAPExperiment < handle
         idWord = words{1}{2};
       end
     end
-
-
 
   end % methods
 end % classdef
