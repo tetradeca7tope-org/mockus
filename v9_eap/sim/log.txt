@@ -1,0 +1,18 @@
+Running EX...
+***completed generic algo parameter setup
+***completed loading antenna placements
+***completed loading wires for input/S5 - 4ft square plate w box and sides fixed.nec
+***completed loading wires for input/A1 - 75mono fixed.nec
+***completed loading wires for input/A2 - 150mono fixed.nec
+***completed loading wires for input/A3 - 150dipole fixed.nec
+***completed loading wires for input/A4-300mono-fixed.nec
+***completed loading wires for input/A5 - 300dipole fixed.nec
+***completed loading nec files
+***completed writing free space nec files
+***completed creating out files for free space patterns
+***creating individuals
+pop size1
+***running simulation for exhaustive
+***completed simulation for exhaustive
+best -nan
+Invalid state exception: Write file not defined for putting platform wires

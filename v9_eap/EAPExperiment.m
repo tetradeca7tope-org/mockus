@@ -48,7 +48,9 @@ classdef EAPExperiment < handle
     function obj = EAPExperiment(settingIdx, numAntennas)
 
       % prelims
-      obj.antennaSpaceBounds = repmat([-1, 1], 3*numel(obj.allAntennas), 1);
+      obj.antennaSpaceBounds = repmat([-0.8 0.9] , ...
+        3*numel(obj.allAntennas), 1) + ...
+        0.1*[-rand(3*numel(obj.allAntennas), 1) rand(3*numel(obj.allAntennas), 1)];
       % EAP stuff
 %       obj.luasDir = sprintf('%sluas/', obj.eapDir);
       obj.luasDir = 'luas/';
@@ -73,17 +75,21 @@ classdef EAPExperiment < handle
 
     end
 
+
     function normCoords = getNormCoords(obj, trueCoords)
       normCoords = getNormParams(trueCoords, obj.problemSpaceBounds);
     end
+
 
     function trueCoords = getTrueCoords(obj, normCoords)
       trueCoords = getUnNormParams(normCoords, obj.problemSpaceBounds);
     end
 
+
     function [negFitnessVals] = normCoordFitness(obj, evalPts)
       negFitnessVals = obj.trueCoordFitness(obj.getTrueCoords(evalPts));
     end
+
 
     function [negFitnessVals] = trueCoordFitness(obj, evalPts)
 
@@ -102,7 +108,11 @@ classdef EAPExperiment < handle
         % Read results
         currMCVal = obj.mutualCoupling();
         currGPVal = obj.gainPattern();
+        currMCVal,currGPVal,
         negFitnessVals(evalPtIter) = -obj.alpha*currMCVal - obj.beta*currGPVal;
+        if ~isfinite(negFitnessVals(evalPtIter))
+          negFitnessVals(evalPtIter) = 140.1423;
+        end
       end
 
     end % end trueCoordFitness
@@ -114,6 +124,8 @@ classdef EAPExperiment < handle
 
       % First write antenna locations to file
       luaFileStr = sprintf('load_platform(\"input/%s\")\n', obj.setting);
+%       luaFileStr = ''; %sprintf('load_platform(\"input/%s\")\n', obj.setting);
+      evalPt, 
       for i = 1:obj.numAntennas
         currStr = sprintf(['add_antenna(\"input/%s\")\n', ...
           'add_point( %0.7f, %0.7f, %0.7f )\n'], ...
@@ -123,17 +135,17 @@ classdef EAPExperiment < handle
       end
       luaFileStr = sprintf('%s%s', luaFileStr, obj.paramsStr);
       inFileStr = sprintf('%s%sin.lua', obj.eapDir, obj.luasDir);
+%       inFileStr,
       inFile = fopen(inFileStr, 'w');
       fprintf(inFile, luaFileStr);
 
       % Now execute the simulator
       commandStr = sprintf(...
         ['export LD_LIBRARY_PATH="/usr/lib/gcc/x86_64-linux-gnu/4.8" ; ', ...
-        'cd sim && ./%s -i %sin.lua && cd ..'], ...
+        'cd sim && ./%s -i %sin.lua &>log.txt && cd ..'], ...
         obj.binName, obj.luasDir);
-      commandStr,
+%       commandStr,
       success = ~system(commandStr);
-
       success = 1;
     end
 
@@ -143,20 +155,25 @@ classdef EAPExperiment < handle
 
       % Read file till you get to the MC values  
 %       obj.mcFile = 'temp.txt';
-      mcFileId = fopen(obj.mcFile, 'r');
-      currIdWord = 'temp';
-      while ~strcmp(currIdWord, 'COUPLING')
-        currIdWord = obj.getIdWordInLine(mcFileId);
-      end
+      try 
+        mcFileId = fopen(obj.mcFile, 'r');
+        currIdWord = 'temp';
+        while ~strcmp(currIdWord, 'COUPLING')
+          currIdWord = obj.getIdWordInLine(mcFileId);
+        end
 
-      % Pass the next two lines too
-      fgets(mcFileId);
-      fgets(mcFileId);
+        % Pass the next two lines too
+        fgets(mcFileId);
+        fgets(mcFileId);
 
-      mcVal = 0;
-      for i = 1:nchoosek(obj.numAntennas, 2)
-        q = textscan(fgets(mcFileId), '%s');
-        mcVal = mcVal + str2num(q{1}{7});
+        mcVal = 0;
+        for i = 1:nchoosek(obj.numAntennas, 2)
+          q = textscan(fgets(mcFileId), '%s');
+          mcVal = mcVal + str2num(q{1}{7});
+        end
+        % This most probaly means that there was an issue with the simulation.
+      catch err
+        mcVal = nan;
       end
 
     end % end mutualCoupling

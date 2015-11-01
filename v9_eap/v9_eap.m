@@ -7,9 +7,11 @@ addpath(genpath(LIBPATH));
 warning off;
 
 % Problem parameters
-numExperiments = 2;
-numIters = 100;
-numDims = 15;  numDimsPerGroupCands = [15;1;2;3;5];
+numDims = 15;
+numExperiments = 2; numIters = 15; % Debug
+numExperiments = 10; numIters = 400;
+
+numDimsPerGroupCands = [15;1;2;3;5];
 
 numInitPts = 10;
 numDiRectEvals = 2000; 
@@ -41,33 +43,42 @@ boParams.useSamePr = true;
 boParams.useSameSm = true;
 boParams.fixPr = false;
 boParams.fixSm = false;
-boParams.sigmaPrRange = [0.03 30] * stdFth;
+boParams.sigmaPrRange = [100 200];
 boParams.useFixedBandwidth = false;
 
 % The rest - arbitrary decompositions
 boAddParams = boParams;
 boAddParams.decompStrategy = 'partialLearn';
 boAddParams.diRectParams.maxits = inf;
+% EI
+boEIParams = boParams;
+boEIParams.utilityFunc = 'EI';
+boEIParams.diRectParams.maxevals = numDiRectEvals;
+doEIParams.diRectParams.maxits = inf;
+boEIParams.decompStrategy = 'known';
+boEIDecomp = {[1:numDims]};
 
 totalNumQueries = numIters + numInitPts;
 % Initialize an array for storing the query points
 boAddQueryPts = zeros(totalNumQueries, numDims, numExperiments, numdCands);
 randQueryPts = zeros(totalNumQueries, numDims, numExperiments);
+boEIQueryPts = zeros(totalNumQueries, numDims, numExperiments);
 % Initialize arrays for storing the histories
 boAddHistories = zeros(numExperiments, totalNumQueries, numdCands);
 randHistories = zeros(numExperiments, totalNumQueries);
+boEIHistories = zeros(numExperiments, totalNumQueries);
 % For storing maximum values
 boAddMaxVals = zeros(numExperiments, totalNumQueries, numdCands);
 randMaxVals = zeros(numExperiments, totalNumQueries);
+boEIMaxVals = zeros(numExperiments, totalNumQueries);
 % For storing cumulative rewards
 boAddCumRewards = zeros(numExperiments, totalNumQueries, numdCands);
 randCumRewards = zeros(numExperiments, totalNumQueries);
+boEICumRewards = zeros(numExperiments, totalNumQueries);
 % Store times
 boAddTimes = zeros(numExperiments, numdCands);
 randTimes = zeros(numExperiments);
-
-% First call at the nominal value
-nominalVal = func(nominalPt);
+boEITimes = zeros(numExperiments);
 
 % % First Call Direct
 diRectHist = [(1:totalNumQueries)' (1:totalNumQueries)' zeros(totalNumQueries,1)];
@@ -88,12 +99,25 @@ fprintf('DiRectOpt = %.4f\n', diRectMaxVals(end));
 
 for expIter = 1:numExperiments
 
+  fprintf('\n==============================================================\n');
+  fprintf('Experiment %d/ %d\nNominal Value: %.4f\n', ...
+    expIter, numExperiments, nominalVal);
+  fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
+  fprintf('\n==============================================================\n');
+
+  % Initialisation for all methods
+  fprintf('\n\nFirst obtaining initialization for BO\n');
+  boAddParams.initPts = [rand(numInitPts, numDims)];
+  boAddParams.initVals = func(boAddParams.initPts);
+  fprintf('Max Init Val: %0.5f\n', max(boAddParams.initVals));
+
   % First do Random
-  randQueries = bsxfun(@plus, ...
-    bsxfun(@times, rand(totalNumQueries, numDims), ...
+  randRemPts = bsxfun(@plus, ...
+    bsxfun(@times, rand(numIters, numDims), ...
       (bounds(:,2) - bounds(:,1))' ), bounds(:,1)' );
+  randQueries = [boAddParams.initPts; randRemPts];
   tic;
-  randHistories(expIter, :) = func(randQueries)';
+  randHistories(expIter, :) = [boAddParams.initVals; func(randRemPts)]';
   randQueryPts(:,:,expIter) = randQueries;
   randTimes(expIter) = toc;
   [sR, cR] = getRegrets(-inf, randHistories(expIter, :)');
@@ -101,22 +125,16 @@ for expIter = 1:numExperiments
   randCumRewards(expIter, :) = cR';
   fprintf('Random Max: %0.5f\n', randMaxVals(expIter, totalNumQueries));
 
-  fprintf('\n\nFirst obtaining initialization for BO\n');
-%   boAddParams.initPts = [0.1*rand(1, numDims) + nominalPt; ...
-%     rand(numInitPts-1, numDims)];
-  boAddParams.initPts = [rand(numInitPts, numDims)];
-%   boAddParams.initPts = diRectQueries(1:numInitPts, :) + ...
-%     0.01*rand(numInitPts, numDims);
-  boAddParams.initVals = func(boAddParams.initPts);
-  fprintf('Max Init Val: %0.5f\n', max(boAddParams.initVals));
+  % Expected Improvement
+  fprintf('\nExpected Improvement\n');
+  [~, ~, queries, valHistEI] = ...
+    addGPBO(func, boEIDecomp, bounds, numIters, boEIParams);
+  [sR, cR] = getRegrets(-inf, valHistEI);
+  boEIHistories(expIter, :) = valHistEI;
+  boEIMaxVals(expIter, :) = sR';
+  boEICumRewards(expIter, :) = cR';
 
-  fprintf('\n==============================================================\n');
-  fprintf('Experiment %d/ %d\nNominal Value: %.4f\n', ...
-    expIter, numExperiments, nominalVal);
-  fprintf('Num DiRectEvals: %d\n', numDiRectEvals);
-  fprintf('==============================================================\n');
-
-  % For the candidates in numDimsPerGroupCands
+  % (Additive) GP-UCB for the candidates in numDimsPerGroupCands
   for candIter = 1:numdCands
     fprintf('\nUsing a %d/ %d decomposition\n', ...
       numDimsPerGroupCands(candIter), numDims );
@@ -127,7 +145,7 @@ for expIter = 1:numExperiments
       ceil(numDiRectEvals/(numDims/numDimsPerGroupCands(candIter)));
     tic;
     [~, ~, queries, valHistAdd] = ...
-      bayesOptDecompAddGP(func, decompAdd, bounds, numIters, boAddParamsCurr);
+      addGPBO(func, decompAdd, bounds, numIters, boAddParamsCurr);
     boAddTimes(expIter, candIter) = toc;
     [sR, cR] = getRegrets(-inf, valHistAdd);
     boAddQueryPts(:,:,expIter, candIter) = queries;
@@ -139,11 +157,11 @@ for expIter = 1:numExperiments
   % Save Results at each iteration
   save(saveFileName, 'numDims', 'numDimsPerGroupCands', ...
     'numIters', 'totalNumQueries', 'numdCands', ...
-    'boAddHistories', 'randHistories', 'diRectHistory', ...
-    'boAddMaxVals', 'randMaxVals', 'diRectMaxVals', ...
-    'boAddCumRewards', 'randCumRewards', 'diRectCumRewards' , ...
-    'boAddQueryPts', 'randQueryPts', 'diRectOptPt', ...
-    'boAddTimes', 'randTimes', 'diRectTime');
+    'boAddHistories', 'boEIHistories', 'randHistories', 'diRectHistory', ...
+    'boAddMaxVals', 'boEIMaxVals', 'randMaxVals', 'diRectMaxVals', ...
+    'boAddCumRewards', 'boEICumRewards', 'randCumRewards', 'diRectCumRewards' , ...
+    'boAddQueryPts', 'boEIQueryPts', 'randQueryPts', 'diRectOptPt', ...
+    'boAddTimes', 'boEITimes', 'randTimes', 'diRectTime');
   
 end
 
