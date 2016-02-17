@@ -11,8 +11,11 @@ numSamples = 20;
 func = @(t) - 70*(t-0).* (t-0.35).* (t+0.55).* (t-0.65).* (t-0.98);
 
 numPts = 25;
-% stopPts = [1 2 3 7 10];
 stopPts = [1:15, numPts];
+
+numPts = 104;
+% stopPts = [1:10:numPts];
+
 numCandPts = 300;
 candPts = linspace(0,1,numCandPts+2); candPts = candPts(2: (end-1))';
 gpConfWidth = 1;
@@ -53,9 +56,7 @@ currEvalVals = zeros(0,1);
 % Plot the original GP
     top = muCandPts + gpConfWidth*sigmaCandPts;
     bottom = muCandPts - gpConfWidth*sigmaCandPts;
-    A = [candPts' fliplr(candPts')];
-    B = [top' fliplr(bottom')];
-    h = fill(A, B, [0.9 0.9 0.9]);
+    A = [candPts' fliplr(candPts')]; B = [top' fliplr(bottom')]; h = fill(A, B, [0.9 0.9 0.9]);
     set(h, 'EdgeColor', 'None'); hold on,
     %  NOw plot the function
     th = linspace(0,1,100)';

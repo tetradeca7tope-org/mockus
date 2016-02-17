@@ -129,3 +129,50 @@ ylabel('$\varphi_t(x)$', 'Interpreter', 'Latex', ...
 set(gcf, 'Position', figSize);
 % saveas(gcf, 'ucb', saveFormat);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plot Function and UCB together
+figure;
+% X = [0.1 0.3 0.6 0.77 0.95]';
+% X = [0.05 0.4 0.70 0.95]';
+X = [0.05 0.3 0.5 0.67 0.95]';
+% X = [0.03 0.3 0.45 0.7 0.95]';
+% X = [0.1 0.4 0.70 0.80 0.95]';
+% X = [0.1 0.4 0.6 0.8 0.98]';
+Y = func(X);
+[mu, K, funcH] = GPMargLikelihood(X, Y, th, hyperparams);
+
+FS = 50;
+
+betath = 4;
+ucb = mu + betath * sqrt(diag(K));
+[maxVal, maxIdx] = max(ucb);
+plot(th, func(th), 'LineWidth', LW, 'Color', 'k'); hold on,
+plot(th, ucb, '--b', 'LineWidth', LW);
+plot(th(maxIdx), maxVal, 'r*', 'MarkerSize', MS, 'LineWidth', 1.5*LW);
+
+Y = func(X);
+plot(X, Y, 'kx', 'MarkerSize', MS, 'LineWidth', 1.5*LW);
+newPlotLims = [0 1 -0.6 1.7];
+axis(newPlotLims);
+xlabel('$x$', 'Position', [0.95 -0.4], 'FontSize', FS, 'Interpreter', 'Latex');
+% ylabel('$f(x)$', 'rot', 0, 'Position', [-0.05 1.44], 'FontSize', FS, ...
+%   'Interpreter', 'Latex');
+text(0.215, 1.44, '$\varphi_t$', 'FontSize', FS, ...
+  'Interpreter', 'Latex', 'Color', 'b');
+text(0.16, 0.32, '$f$', 'FontSize', FS, ...
+  'Interpreter', 'Latex');
+
+% plot([th(maxIdx), th(maxIdx)], [-0.5 maxVal], 'r');
+% text(0.8, -0.32, ...
+% '${\bf{x_{t}}}$', 'Color', 'r', 'Interpreter', 'Latex', ...
+%   'FontSize', FS);
+
+set(gca, 'Xtick', []);
+set(gca, 'Ytick', []);
+set(gcf, 'Position', figSize);
+% saveas(gcf, 'funcPts', saveFormat);
+    set(gca, 'Position', [0.02 0.02 0.96 0.96], 'units', 'normalized');
+    set(gcf, 'Position', figSize);
+
+
+

@@ -38,7 +38,7 @@ for i_stage = 1:length(HaarCasade.stages),
 %     StageSum, threshold, check,
     
     % Remove coordinates which don't contain an object
-    x, y,
+%     x, y,
     x=x(~check);  if(isempty(x)), break; end % All coordinates failed
                                              % on this Scale to detect an
                                              % object in the image
